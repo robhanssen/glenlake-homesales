@@ -1,6 +1,6 @@
-message("more-predictions.r")
 library(tidyverse)
 library(lubridate)
+source("functions/config.r")
 theme_set(theme_light())
 
 load("Rdata/homesales.Rdata")

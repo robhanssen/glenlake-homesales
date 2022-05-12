@@ -1,5 +1,6 @@
 library(tidyverse)
 library(lubridate)
+theme_set(theme_light())
 source("functions/config.r")
 load("Rdata/homesales.Rdata")
 

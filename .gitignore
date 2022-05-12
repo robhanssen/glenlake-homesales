@@ -40,5 +40,6 @@ vignettes/*.pdf
 
 graphs/*.png
 graphs/*.pdf
+predictions/*.png
 dashboard.png
 data/*.csv

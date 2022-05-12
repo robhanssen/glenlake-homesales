@@ -1,8 +1,9 @@
-message("05-find-resales.r")
 library(tidyverse)
 library(lubridate)
 library(scales)
-source("01-config.r")
+theme_set(theme_light())
+source("functions/config.r")
+load("Rdata/homesales.Rdata")
 
 glenlakehomes <- read_csv("sources/glenlakehomes.csv")
 hometypes <- read_csv("sources/hometypes.csv")
@@ -10,8 +11,6 @@ hometypes <- read_csv("sources/hometypes.csv")
 totalhomes <- with(glenlakehomes, sum(numberofhomes))
 totalsold <- nrow(homesales)
 averageturnover <- totalsold / totalhomes
-
-
 
 dupes <- homesales %>%
        filter(duplicated(address) | duplicated(address, fromLast = TRUE)) %>%
@@ -25,31 +24,53 @@ dupes <- homesales %>%
        ungroup() %>%
        select(address:hometype, lagtime, streetname)
 
-caption <- caption_source
-
 dupes %>%
        filter(!is.na(lagtime)) %>%
        arrange(lagtime) %>%
-       mutate(addresslabel = paste0(address, " (", round(lagtime, 1), ")")) %>%
+       mutate(interact = interaction(address, listingdate)) %>%
        ggplot() +
        aes(
-              x = fct_reorder(addresslabel, -lagtime),
+              x = fct_reorder(interact, -lagtime),
               y = lagtime,
               fill = hometype
        ) +
        geom_bar(stat = "identity") +
        labs(
               y = "Time between sale and next listing (in months)",
-              x = "Address (relisting time in months)",
+              x = "Address",
               fill = "Type of home", caption = caption
        ) +
+       scale_x_discrete(labels = dupes %>%
+              arrange(-lagtime) %>%
+              pull(address)) +
        scale_y_continuous(breaks = 12 * 1:10) +
        coord_flip()
 
-ggsave("graphs/home-resale-time.pdf", width = 8, height = 11)
+ggsave("graphs/turnover-time.png", width = 8, height = 6)
+
+dupes %>%
+       group_by(address) %>%
+       summarize(
+              resales = n(),
+              .groups = "drop"
+       ) %>%
+       slice_max(resales, n = 10) %>%
+       ggplot() +
+       aes(
+              fct_reorder(address, resales),
+              resales - 1
+       ) +
+       geom_col() +
+       scale_y_continuous(breaks = 0:100) +
+       labs(
+              x = "Address",
+              y = "Resale count"
+       ) +
+       coord_flip()
 
 minsaleyear <- with(homesales, min(saleyear, na.rm = TRUE))
 maxsaleyear <- with(homesales, max(saleyear, na.rm = TRUE))
+
 data_time_length <- with(
        homesales,
        time_length(
@@ -72,8 +93,10 @@ homesales %>%
               )
        ) %>%
        group_by(streetname) %>%
-       summarize(countbystreet = n()) %>%
-       ungroup() %>%
+       summarize(
+              countbystreet = n(),
+              .groups = "drop"
+       ) %>%
        right_join(glenlakehomes) %>%
        mutate(countbystreet = ifelse(is.na(countbystreet),
               0,
@@ -81,6 +104,7 @@ homesales %>%
        )) %>%
        mutate(
               turnover = countbystreet / numberofhomes,
+              torate = turnover / data_time_length,
               residencetime = data_time_length / turnover
        ) %>%
        mutate(homecount = cut(numberofhomes,
@@ -152,7 +176,7 @@ hometurnover %>%
        theme_light() +
        theme(legend.position = "none")
 
-ggsave("graphs/turnover-by-street.pdf", width = 11, height = 8)
+
 
 hometurnover %>%
        ggplot() +
@@ -170,4 +194,47 @@ hometurnover %>%
        theme_light() +
        theme(legend.position = "none")
 
-ggsave("graphs/residencetime-by-street.pdf", width = 11, height = 8)
+ggsave("graphs/turnover-residencetime.png", width = 12, height = 6)
+
+
+caption <- paste0(
+       caption_source,
+       "\nDotted line: neigborhood average (",
+       round(100 * turnoverlimits[1] / data_time_length, 0),
+       "-",
+       round(100 * turnoverlimits[2] / data_time_length, 0),
+       "%)",
+       "\n PH: patio home; TH: townhome"
+)
+
+
+hometurnover %>%
+       ggplot() +
+       aes(
+              x = fct_reorder(streetname, turnover),
+              y = torate,
+              fill = turnoverwarning
+       ) +
+       scale_y_continuous(labels = percent_format(), breaks = .05 * 0:10) +
+       geom_col() +
+       facet_wrap(~homecount, scale = "free") +
+       ggtitle("Annual home turn-over rate by street") +
+       labs(
+              x = "Street", y = paste0(
+                     "Turn-over rate per year (",
+                     minsaleyear, "-",
+                     maxsaleyear, ")"
+              ),
+              caption = caption
+       ) +
+       geom_hline(
+              yintercept = turnoverlimits / data_time_length,
+              lty = 2,
+              color = "gray50"
+       ) +
+       scale_fill_manual(values = colorset) +
+       coord_flip() +
+       theme_light() +
+       theme(legend.position = "none")
+
+ggsave("graphs/turnover-rate-by-street.png", width = 12, height = 6)

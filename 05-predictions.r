@@ -1,9 +1,9 @@
-message("05-predictions.r")
 library(tidyverse)
 library(lubridate)
 library(scales)
 library(broom)
-source("01-config.r")
+theme_set(theme_light())
+source("functions/config.r")
 
 load("Rdata/homesales.Rdata")
 
@@ -40,7 +40,7 @@ homesales %>%
               x = "Year",
               y = "Total market value (in USD)",
               fill = "Home type",
-              caption = caption_source
+              caption = caption
        ) +
        annotate("text",
               x = maxyear,
@@ -51,7 +51,7 @@ homesales %>%
               )
        )
 
-ggsave("graphs/market-value.pdf", width = 11, height = 8)
+ggsave("graphs/market-value.png", width = 8, height = 6)
 
 # median last day of sale in a year
 
@@ -105,9 +105,19 @@ modelparameters <-
        mutate(modelparameters = map(marketmodel, broom::tidy)) %>%
        unnest(modelparameters)
 
+year_range <- 
+       homesales %>%
+       distinct(saleyear) %>%
+       filter(!is.na(saleyear)) %>%
+       .$saleyear
+
+year_length <- length(year_range)
+colors <- c(rep("gray80", year_length - 1), "red")
+sizes <- c(rep(.25, year_length - 1), 1)
+
 valuebyyear %>%
        ggplot() +
-       aes(x = dayofyear, y = marketvalue, color = factor(saleyear)) +
+       aes(x = dayofyear, y = marketvalue, color = factor(saleyear), size = factor(saleyear)) +
        geom_line() +
        scale_y_continuous(labels = dollar_format(
               scale = 1e-3,
@@ -119,13 +129,14 @@ valuebyyear %>%
               x = "Day of year",
               y = "Total market value (in USD)",
               color = "Year",
-              caption = caption_source
+              caption = caption
        ) +
-       scale_color_discrete() +
-       geom_line(data = modeldata, aes(y = .fitted), lty = 2) +
-       theme_light()
+       scale_color_manual(values = colors) +
+       scale_size_manual(values = sizes) +
+       geom_line(data = modeldata, aes(y = .fitted), lty = 2) + 
+       theme(legend.position = "none")
 
-ggsave("graphs/market-value-by-dayofyear.pdf", width = 11, height = 8)
+ggsave("graphs/dayofyear-marketvalue.png", width = 8, height = 6)
 
 
 this_year <- year(today())
@@ -176,7 +187,7 @@ valuebyyear %>%
               x = "Year",
               y = "Total market value (in USD)",
               fill = "Predicted value",
-              caption = caption_source
+              caption = caption
        ) +
        annotate("text",
               x = this_year,
@@ -188,7 +199,7 @@ valuebyyear %>%
        ) +
        theme(legend.position = "none")
 
-ggsave("predictions/market-value-prediction.pdf", width = 11, height = 8)
+ggsave("predictions/market-value-prediction.png", width = 8, height = 6)
 
 
 ### number of homesales by year
@@ -241,7 +252,7 @@ salesmodeldata <-
 
 salecounter %>%
        ggplot() +
-       aes(x = dayofyear, y = salecount, color = factor(year)) +
+       aes(x = dayofyear, y = salecount, color = factor(year), size = factor(year)) +
        geom_line() +
        geom_line(data = salesmodeldata, aes(y = .fitted), lty = 2) +
        scale_y_continuous(limit = c(0, NA)) +
@@ -249,8 +260,10 @@ salecounter %>%
               x = "Day of year",
               y = "Numbers of homes sold (cumulative)",
               color = "Year",
-              caption = caption_source
+              caption = caption
        ) +
+       scale_color_manual(values = colors) + 
+       scale_size_manual(values = sizes) +
        theme_light()
 
 ggsave("graphs/sales-by-dayofyear.pdf")
@@ -281,6 +294,7 @@ salecounter %>%
        group_by(year) %>%
        filter(salecount == max(salecount)) %>%
        mutate(predicted = ifelse(year != this_year, TRUE, FALSE)) %>%
+       ungroup() %>%
        ggplot() +
        aes(x = year, y = salecount, fill = predicted) +
        geom_col() +
@@ -288,7 +302,7 @@ salecounter %>%
               y = .fitted,
               ymin = .lower,
               ymax = .upper,
-              fill = TRUE
+              fill = NULL
        ),
        width = .2,
        data = salesmodeldata %>% filter(dayofyear == max(dayofyear))
@@ -299,8 +313,8 @@ salecounter %>%
               subtitle = subtitle,
               x = "Year",
               y = "Total home sales",
-              fill = "Predicted value",
-              caption = caption_source
+              # fill = "Predicted value",
+              caption = caption
        ) +
        annotate("text",
               x = this_year,
@@ -310,7 +324,6 @@ salecounter %>%
                      sep = "\n"
               )
        ) +
-       theme(legend.position = "none") +
-       theme_light()
+       theme(legend.position = "none")
 
-ggsave("predictions/homesales-prediction.pdf", width = 11, height = 8)
+ggsave("predictions/homesales-prediction.png", width = 8, height = 6)

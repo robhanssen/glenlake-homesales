@@ -1,11 +1,11 @@
-message("market-fundamentals.r")
 library(tidyverse)
 library(lubridate)
+source("functions/config.r")
 theme_set(theme_light())
 
 load("Rdata/homesales.Rdata")
 
-source("01-config.r")
+
 
 homesales_filtered <-
     homesales %>%
@@ -26,8 +26,8 @@ homes_sold_last_12months <- function(tbl, date) {
     tibble::tibble(date = date, homesold = nrow(sale_data))
 }
 
-sold_last_year <-
-    map_dfr(datelist, ~ homes_sold_last_12months(homesales_filtered, .x))
+# sold_last_year <-
+#     map_dfr(datelist, ~ homes_sold_last_12months(homesales_filtered, .x))
 
 monthlist <- c(
     seq(
