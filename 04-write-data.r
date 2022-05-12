@@ -1,4 +1,7 @@
-message("04-write-data.r")
+library(tidyverse)
+source("functions/config.r")
+load("Rdata/homesales.Rdata")
+
 # unconfirmed sales for researching
 homesales %>%
         filter(undercontract == 1 & !is.na(saledate)) %>%
@@ -8,13 +11,13 @@ homesales %>%
 # unsold homes
 homesales %>%
         filter(is.na(saledate)) %>%
-        select(address, listingdate, timeonmarket, hometype, undercontract) %>%
-        arrange(-timeonmarket) %>%
+        select(address, listingdate, hometype, undercontract) %>%
+        arrange(listingdate) %>%
         write_csv("data/unsold_homes.csv")
 
 # homes on market
 homesales %>%
         filter(is.na(saledate), is.na(undercontract)) %>%
-        select(address, listingdate, timeonmarket, hometype, undercontract) %>%
-        arrange(-timeonmarket) %>%
+        select(address, listingdate, hometype, undercontract) %>%
+        arrange(listingdate) %>%
         write_csv("data/homes_on_market.csv")

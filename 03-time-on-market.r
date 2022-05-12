@@ -1,5 +1,7 @@
-message("04-time-on-market.r")
 library(tidyverse)
+library(lubridate)
+source("functions/config.r")
+load("Rdata/homesales.Rdata")
 
 # median time on market by year and hometype
 timeonmarket <- homesales %>%
@@ -23,18 +25,18 @@ timeonmarket %>%
                 position = position_dodge(width = 0.9),
                 vjust = -1
         ) +
-        facet_wrap(hometype ~ status, ncol = 3)
+        theme(legend.position = "none") +
+        facet_grid(hometype ~ status)
 
-
-ggsave("graphs/median-time-on-market.pdf")
+ggsave("graphs/timeonmarket-median.png", width = 8, height = 6)
 
 homesales %>%
         filter(status == "Sold") %>%
         ggplot() +
-        aes(x = factor(listingyear), y = timeonmarket, fill = hometype) +
+        aes(x = factor(listingyear), y = timeonmarket) +
         geom_violin(draw_quantiles = 0.5) +
         geom_jitter(alpha = .5, width = .2) +
-        facet_wrap(. ~ hometype) +
+        # facet_wrap(. ~ hometype) +
         labs(
                 x = "Year of listing",
                 y = "Time on market (in days)",
@@ -42,6 +44,6 @@ homesales %>%
                 fill = "Home type",
                 caption = caption
         ) +
-        scale_y_continuous(limits = c(0, 350))
+        scale_y_continuous(limits = c(-1, 350))
 
-ggsave("graphs/violinplot-time-on-market.pdf", width = 11, height = 8)
+ggsave("graphs/timeonmarket-distribution.png", width = 8, height = 6)
