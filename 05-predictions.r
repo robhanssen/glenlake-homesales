@@ -266,7 +266,7 @@ salecounter %>%
        scale_size_manual(values = sizes) +
        theme_light()
 
-ggsave("graphs/sales-by-dayofyear.pdf")
+ggsave("graphs/dayofyear-sales-pred.png", width = 8, height = 6)
 
 
 lwr <- salesmodeldata %>%
