@@ -5,17 +5,9 @@ theme_set(theme_light())
 
 load("Rdata/homesales.Rdata")
 
-
-
 homesales_filtered <-
     homesales %>%
     filter(!is.na(saledate))
-
-datelist <-
-    with(
-        homesales_filtered,
-        sort(unique(c(listingdate, saledate, today())))
-    )
 
 homes_sold_last_12months <- function(tbl, date) {
     date_year_ago <- date - lubridate::years(1)
@@ -26,8 +18,11 @@ homes_sold_last_12months <- function(tbl, date) {
     tibble::tibble(date = date, homesold = nrow(sale_data))
 }
 
-# sold_last_year <-
-#     map_dfr(datelist, ~ homes_sold_last_12months(homesales_filtered, .x))
+datelist <-
+    with(
+        homesales_filtered,
+        sort(unique(c(listingdate, saledate, today())))
+    )
 
 monthlist <- c(
     seq(
@@ -40,7 +35,6 @@ monthlist <- c(
 
 sold_last_year_by_month <-
     map_dfr(monthlist, ~ homes_sold_last_12months(homesales_filtered, .x))
-
 
 sold_last_year_by_month %>%
     filter(date >= first(datelist) + years(1)) %>%
@@ -70,32 +64,6 @@ current_market_size <-
     select(-y)
 
 note_date <- last(datelist) - days(180)
-
-inner_join(current_market_size, sold_last_year) %>%
-    filter(date >= first(datelist) + years(1)) %>%
-    mutate(market_speed = homesonmarket / homesold * 12) %>%
-    ggplot() +
-    aes(date, market_speed) +
-    geom_line(color = "gray50", alpha = .5) +
-    scale_x_date() +
-    scale_y_continuous(limits = c(0, NA), breaks = 1 * 0:100) +
-    geom_hline(yintercept = 6, lty = 2, color = "gray50") +
-    geom_smooth(
-        method = "loess",
-        se = FALSE,
-        lty = "dashed",
-        color = "gray50"
-    ) +
-    labs(
-        x = "Date",
-        y = "Inventory rate (in months)",
-        caption = caption_source
-    ) +
-    annotate("text", x = note_date, y = 6.5, label = "Buyer's Market") +
-    annotate("text", x = note_date, y = 5.5, label = "Seller's Market")
-
-# ggsave("graphs/average-inventory-time.png", width = 8, height = 6)
-
 
 # average residence time
 
