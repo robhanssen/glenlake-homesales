@@ -2,12 +2,14 @@ library(tidyverse)
 library(lubridate)
 library(patchwork)
 theme_set(theme_light())
+source("functions/dashboard-functions.r")
 
-alpha <- .5
+load("Rdata/homesales.Rdata")
+
+alpha <- .8
 
 homesales <-
     homesales %>%
-    #    read_csv("data/homesales_processeddata.csv") %>%
     mutate(
         listingyear = factor(listingyear),
         saleyear = factor(saleyear)
@@ -22,7 +24,7 @@ num_years <- homesales %>%
     nrow(.)
 
 colorscale <-
-    scales::seq_gradient_pal("blue", "red", "Lab")(seq(0, 1, length.out = num_years))
+    scales::seq_gradient_pal("#D3BDA8", "#295043", "Lab")(seq(0, 1, length.out = num_years))
 
 homeslisted <-
     homesales %>%
@@ -54,6 +56,7 @@ homessold <-
         title = "Homes sold"
     ) +
     scale_fill_manual(values = colorscale) +
+    scale_y_continuous(breaks = 0:10 * 10) +
     theme(legend.position = "none") +
     annotate("text", x = max_year, y = 2, label = "YTD")
 
@@ -95,11 +98,9 @@ saleprice <-
     theme(legend.position = "none")
 
 averageinventorysize <-
-    homesales %>%
-    group_by(listingyear) %>%
-    summarize(inventory = mean(inventory)) %>%
+    average_inventory_size(homesales) %>%
     ggplot() +
-    aes(x = listingyear, y = inventory, fill = listingyear) +
+    aes(x = year, y = inventory, fill = factor(year)) +
     geom_col(alpha = alpha) +
     labs(
         x = "Year",
@@ -109,27 +110,22 @@ averageinventorysize <-
     scale_fill_manual(values = colorscale) +
     theme(legend.position = "none")
 
+# does not work
 averageinventorytime <-
-    homesales %>%
-    group_by(listingyear) %>%
-    summarize(inventorytime = median(inventorytime, na.rm = TRUE)) %>%
-    mutate(inventorytime = ifelse(listingyear == "2017", 0, inventorytime)) %>%
+    average_inventory_time(homesales) %>%
+    mutate(year = year(month)) %>%
+    group_by(year) %>%
+    summarize(inventorytime = mean(market_speed, na.rm = TRUE)) %>%
+    bind_rows(tibble(year = 2017, inventorytime = 0), .) %>%
     ggplot() +
-    aes(x = listingyear, y = inventorytime, fill = listingyear) +
+    aes(x = year, y = inventorytime, fill = factor(year)) +
     geom_col(alpha = alpha) +
     labs(
         x = "Year",
         y = "Months",
         title = "Average Inventory Time by year"
     ) +
-    # annotate("label", x = "2017", y = .5, label = "NO\nDATA") +
     scale_fill_manual(values = colorscale) +
-    annotate("label",
-        x = "2017",
-        y = 5.85,
-        label = "buyer's\nseller's\nmarket",
-        fill = NA
-    ) +
     geom_hline(yintercept = 6, lty = 3) +
     theme(legend.position = "none")
 
