@@ -11,16 +11,22 @@ homesales %>%
     geom_col() + 
     labs(x = "Time on market", 
         y = "Address",
-        title = "Record maximum time on market") +
+        title = "Record maximum time on market")
+
+
 
 homesales %>%
     filter(timeonmarket != 0, !is.na(saledate)) %>%
-    slice_min(timeonmarket, n = 20) %>%
-    ggplot(aes(y = fct_reorder(address, -timeonmarket), x = timeonmarket)) + 
+    mutate(interact = interaction(address, saledate)) %>%
+    slice_min(timeonmarket, n = 20) %>% 
+    ggplot(aes(y = fct_reorder(interact, -timeonmarket), x = timeonmarket)) + 
     geom_col() + 
+    # scale_y_discrete(labels = addresslist) +
     labs(x = "Time on market", 
         y = "Address",
         title = "Record minimum time on market") 
+
+
 
 
 homesales %>%
