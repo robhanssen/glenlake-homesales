@@ -43,6 +43,6 @@ quarter_summary %>%
     labs(
         y = "Time on market (in days)",
         x = "Date by year/quarter",
-        caption = "Ribbon represents highest and lower sale price per quarter"
+        caption = "Ribbon represents highest and lower time per quarter"
     ) + 
     geom_hline(yintercept = lowest_amount, alpha = .7, lty = 3)
