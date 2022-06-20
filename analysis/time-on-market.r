@@ -34,7 +34,7 @@ quarter_summary %>%
     geom_col(aes(y = mean_amount), alpha = .5, color = "gray50") +
     geom_ribbon(aes(ymin = min_amount, ymax = max_amount, y = NULL), alpha = .2) +
     scale_y_continuous(
-        labels = scales::dollar_format(),
+        labels = scales::number_format(),
         limits = c(0, NA),
         sec.axis = sec_axis(~ . / lowest_amount - 1,
                             labels = scales::percent_format(),
