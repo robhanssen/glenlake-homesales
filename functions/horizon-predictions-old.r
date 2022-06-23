@@ -11,15 +11,17 @@ predict_market_size <- function(tbl, period) {
     history <-
         tbl %>%
         filter(date > today() - days(period)) %>%
+        group_by(hometype) %>%
         mutate(
             totalamount = cumsum(amount),
             .groups = "drop"
         ) %>%
-        select(date, totalamount)
+        select(date, hometype, totalamount)
 
     period_model <-
         history %>%
-        nest(data = everything()) %>%
+        group_by(hometype) %>%
+        nest() %>%
         mutate(period_model = map(
             data,
             ~ lm(totalamount ~ date, data = .x)
@@ -44,7 +46,7 @@ predict_market_size <- function(tbl, period) {
             values_from = .fitted
         ) %>%
         mutate(amount_sold = cur_data()[[2]] - cur_data()[[1]]) %>%
-        select(amount_sold)
+        select(hometype, amount_sold)
 
 
     period_predict %>%
@@ -63,16 +65,18 @@ predict_listing_rate <- function(tbl, period) {
     history <-
         tbl %>%
         filter(date > today() - days(period)) %>%
+        group_by(hometype) %>%
         mutate(
             counter = 1,
             totalamount = cumsum(counter),
             .groups = "drop"
         ) %>%
-        select(date, totalamount)
+        select(date, hometype, totalamount)
 
     period_model <-
         history %>%
-        nest(data = everything()) %>%
+        group_by(hometype) %>%
+        nest() %>%
         mutate(period_model = map(
             data,
             ~ lm(totalamount ~ date, data = .x)
@@ -97,7 +101,7 @@ predict_listing_rate <- function(tbl, period) {
             values_from = .fitted
         ) %>%
         mutate(amount_listed = cur_data()[[2]] - cur_data()[[1]]) %>%
-        select(amount_listed)
+        select(hometype, amount_listed)
 
 
     period_predict %>%
@@ -116,16 +120,18 @@ predict_sale_rate <- function(tbl, period) {
     history <-
         tbl %>%
         filter(date > today() - days(period)) %>%
+        group_by(hometype) %>%
         mutate(
             counter = 1,
             totalamount = cumsum(counter),
             .groups = "drop"
         ) %>%
-        select(date, totalamount)
+        select(date, hometype, totalamount)
 
     period_model <-
         history %>%
-        nest(data = everything()) %>%
+        group_by(hometype) %>%
+        nest() %>%
         mutate(period_model = map(
             data,
             ~ lm(totalamount ~ date, data = .x)
@@ -150,7 +156,7 @@ predict_sale_rate <- function(tbl, period) {
             values_from = .fitted
         ) %>%
         mutate(amount_listed = cur_data()[[2]] - cur_data()[[1]]) %>%
-        select(amount_listed)
+        select(hometype, amount_listed)
 
 
     period_predict %>%

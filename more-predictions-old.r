@@ -13,7 +13,7 @@ homesales_adjusted <- homesales %>% filter(!is.na(amount))
 p1 <-
     map_df(period_list, ~ predict_market_size(homesales_adjusted, .x)) %>%
     ggplot() +
-    aes(factor(period), amount_sold) +
+    aes(factor(period), amount_sold, fill = hometype) +
     geom_col() +
     scale_y_continuous(
         labels = scales::dollar_format(),
@@ -22,11 +22,12 @@ p1 <-
     labs(
         x = "# of days used in prediction",
         y = "Predicted market size ($)",
+        fill = "Hometype",
         title = paste("Market size prediction for end of year", year(today()))
     ) +
     theme(legend.position = "none")
 
-ggsave("predictions/horizon-market-value.png", plot = p1, width = 8, height = 6)
+ggsave("predictions/horizon-market-value.png", plot = p1)
 
 #
 # listing rate
@@ -35,7 +36,7 @@ ggsave("predictions/horizon-market-value.png", plot = p1, width = 8, height = 6)
 p2 <-
     map_df(period_list, ~ predict_listing_rate(homesales, .x)) %>%
     ggplot() +
-    aes(factor(period), amount_listed) +
+    aes(factor(period), amount_listed, fill = hometype) +
     geom_col() +
     scale_y_continuous(
         labels = scales::comma_format(),
@@ -44,11 +45,12 @@ p2 <-
     labs(
         x = "# of days used in prediction",
         y = "Predicted number of listings",
+        fill = "Hometype",
         title = paste("Listing rate prediction for end of year", year(today()))
     ) +
     theme(legend.position = "none")
 
-ggsave("predictions/horizon-listings-rate.png", plot = p2, width = 8, height = 6)
+ggsave("predictions/horizon-listings-rate.png", plot = p2)
 
 #
 # sale rate
@@ -57,7 +59,7 @@ ggsave("predictions/horizon-listings-rate.png", plot = p2, width = 8, height = 6
 p3 <-
     map_df(period_list, ~ predict_sale_rate(homesales, .x)) %>%
     ggplot() +
-    aes(factor(period), amount_listed) +
+    aes(factor(period), amount_listed, fill = hometype) +
     geom_col() +
     scale_y_continuous(
         labels = scales::comma_format(),
@@ -66,8 +68,9 @@ p3 <-
     labs(
         x = "# of days used in prediction",
         y = "Predicted number of sales",
+        fill = "Hometype",
         title = paste("Sale rate prediction for end of year", year(today()))
     ) +
     theme(legend.position = "none")
 
-ggsave("predictions/horizon-sale-rate.png", plot = p3, width = 8, height = 6)
+ggsave("predictions/horizon-sale-rate.png", plot = p3)
