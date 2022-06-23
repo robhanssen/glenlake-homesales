@@ -14,7 +14,7 @@ p1 <-
     map_df(period_list, ~ predict_market_size(homesales_adjusted, .x)) %>%
     ggplot() +
     aes(factor(period), amount_sold) +
-    geom_col() +
+    geom_col(alpha = .8) +
     scale_y_continuous(
         labels = scales::dollar_format(),
         breaks = 2e6 * 0:10
@@ -36,7 +36,7 @@ p2 <-
     map_df(period_list, ~ predict_listing_rate(homesales, .x)) %>%
     ggplot() +
     aes(factor(period), amount_listed) +
-    geom_col() +
+    geom_col(alpha = .8) +
     scale_y_continuous(
         labels = scales::comma_format(),
         breaks = 10 * 0:10
@@ -58,7 +58,7 @@ p3 <-
     map_df(period_list, ~ predict_sale_rate(homesales, .x)) %>%
     ggplot() +
     aes(factor(period), amount_listed) +
-    geom_col() +
+    geom_col(alpha = .8) +
     scale_y_continuous(
         labels = scales::comma_format(),
         breaks = 10 * 0:10
