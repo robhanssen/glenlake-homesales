@@ -44,3 +44,5 @@ graphs/*.pdf
 predictions/*.png
 dashboard.png
 data/*.csv
+
+tmp/*
