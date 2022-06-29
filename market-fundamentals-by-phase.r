@@ -1,5 +1,6 @@
 library(tidyverse)
 library(lubridate)
+library(patchwork)
 source("functions/config.r")
 theme_set(theme_light())
 
@@ -12,7 +13,6 @@ phases <-
         phase %in% c(2) ~ "back",
         TRUE ~ "front"
     ))
-
 
 homesales_joined <-
     homesales %>%
@@ -48,10 +48,10 @@ monthlist <- c(
     ),
     today()
 )
-length(monthlist)
+
 phaselist <- sort(unique(phases$location))
 
-rm(final)
+if (exists("final")) rm(final)
 
 for (ph in phaselist) {
     phasesize <- phases_size$homes[phases_size$location == ph]
@@ -67,31 +67,60 @@ for (ph in phaselist) {
     if (exists("final")) final <- bind_rows(final, x) else final <- x
 }
 
-final %>%
-    ggplot() +
-    aes(date, homesold, color = factor(phase)) +
-    geom_line() +
-    ylim(0, 65)
 
-
-p2 <- final %>%
+cleaned_up_final <-
+    final %>%
     select(-res_time) %>%
     pivot_wider(names_from = phase, values_from = homesold) %>%
     mutate(total = back + front) %>%
     pivot_longer(back:total, names_to = "phase", values_to = "homesold") %>%
+    mutate(phase = factor(phase, levels = c("front", "back", "total")))
+
+colors <- c("front" = "red", "back" = "darkgreen", "total" = "gray50")
+linesty <- c(2, 2, 1)
+
+cleaned_up_final %>%
     ggplot() +
-    aes(date, homesold, color = factor(phase)) +
-    geom_line() + 
-    ylim(0, 65)
-
-
-
-p1 <- map_dfr(monthlist, ~ homes_sold_last_12months(homesales_joined, .x)) %>%
-    ggplot() +
-    aes(date, homesold) +
+    aes(date, homesold, color = factor(phase), lty = factor(phase)) +
     geom_line() +
-    ylim(0, 65)
+    scale_color_manual(values = colors) +
+    scale_linetype_manual(values = linesty) +
+    labs(
+        x = "Date",
+        y = "Homes sold in the last 12 months",
+        color = "Phase",
+        linestyle = NA
+    ) +
+    theme(legend.position = "none") +
+    annotate("text", x = ymd(20210101), y = 18, label = "Back", color = "darkgreen") +
+    annotate("text", x = ymd(20200101), y = 28, label = "Front", color = "red") +
+    annotate("text", x = ymd(20200101), y = 55, label = "Total", color = "gray50")
 
-library(patchwork)
+phases_size_with_total <-
+    bind_rows(
+        phases_size,
+        tibble(location = "total", homes = sum(phases_size$homes))
+    )
 
-p1 + p2
+
+cleaned_up_final %>%
+    left_join(phases_size_with_total, by = c("phase" = "location")) %>%
+    mutate(pct = homesold / homes) %>%
+    ggplot() +
+    aes(date, pct, color = factor(phase), lty = factor(phase)) +
+    geom_line() +
+    scale_y_continuous(labels = scales::percent_format()) +
+    scale_color_manual(values = colors) +
+    scale_linetype_manual(values = linesty) +
+    labs(
+        x = "Date",
+        y = "Homes sold in the last 12 months",
+        color = "Phase",
+        linestyle = NA
+    ) +
+    theme(legend.position = "none") +
+    annotate("text", x = ymd(20220501), y = 0.05, label = "Back", color = "darkgreen") +
+    annotate("text", x = ymd(20220501), y = .13, label = "Front", color = "red") +
+    annotate("text", x = ymd(20220501), y = .08, label = "Total", color = "gray50")
+
+ggsave("graphs/hometurnover-by-phase.png", width = 8, height = 6)
