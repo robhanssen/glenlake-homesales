@@ -13,11 +13,9 @@ homesales %>%
         y = "Address",
         title = "Record maximum time on market")
 
-
-
 homesales %>%
     filter(timeonmarket != 0, !is.na(saledate)) %>%
-    mutate(interact = interaction(address, saledate)) %>%
+    mutate(interact = interaction(address, saleyear)) %>%
     slice_min(timeonmarket, n = 20) %>% 
     ggplot(aes(y = fct_reorder(interact, -timeonmarket), x = timeonmarket)) + 
     geom_col() + 
@@ -26,16 +24,12 @@ homesales %>%
         y = "Address",
         title = "Record minimum time on market") 
 
-
-
-
 homesales %>%
     filter(!is.na(saledate)) %>%
     slice_max(amount, n = 20) %>%
-
+    mutate(interact = interaction(address, saleyear)) %>%
     ggplot(aes(y = fct_reorder(interact, amount), x = amount)) + 
     scale_x_continuous(labels = scales::dollar) +
-
     geom_col() + 
     labs(x = "Sale price", 
         y = "Address",
@@ -44,10 +38,10 @@ homesales %>%
 homesales %>%
     filter(!is.na(saledate)) %>%
     slice_min(amount, n = 20) %>%
-    mutate(interact = interaction(address, saledate)) %>%
+    mutate(interact = interaction(address, saleyear)) %>%
     ggplot(aes(y = fct_reorder(interact, -amount), x = amount)) + 
     scale_x_continuous(labels = scales::dollar) +
-    scale_y_discrete(labels = homesales %>% slice_min(amount, n = 20) %>% pull(address) %>% rev(.)) +
+    # scale_y_discrete(labels = homesales %>% slice_min(amount, n = 20) %>% pull(address) %>% rev(.)) +
     geom_col() + 
     labs(x = "Sale price", 
         y = "Address",
@@ -65,9 +59,9 @@ homesales %>%
     scale_y_continuous(labels = scales::dollar)
 
 
-homesales %>%
-    filter(!is.na(saledate)) %>%
-    # group_by(address) %>%
-    # summarize(amount = min(amount), .groups = "drop") %>%
-    slice_max(amount, n = 10) %>%
-    select(address, amount, saledate) %>% write_csv("test.csv")
+# homesales %>%
+#     filter(!is.na(saledate)) %>%
+#     # group_by(address) %>%
+#     # summarize(amount = min(amount), .groups = "drop") %>%
+#     slice_max(amount, n = 10) %>%
+#     select(address, amount, saledate) %>% write_csv("test.csv")
