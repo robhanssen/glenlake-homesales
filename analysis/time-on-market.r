@@ -22,7 +22,7 @@ quarter_summary <-
 
 lowest_amount <- with(
     homesales,
-    as.numeric(mean(timeonmarket[saleyear == 2017],
+    as.numeric(median(timeonmarket[saleyear == 2017],
         na.rm = TRUE
     )
     )
