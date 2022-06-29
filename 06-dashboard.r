@@ -80,12 +80,18 @@ saleprice <-
     homesales %>%
     filter(!is.na(saleyear)) %>%
     group_by(saleyear) %>%
-    summarize(saleprice = median(amount), na.rm = TRUE) %>%
+    summarize(saleprice = median(amount, na.rm = TRUE),
+            salemax = max(amount, na.rm = TRUE),
+            salemin = min(amount, na.rm = TRUE)
+            ) %>%
     ggplot() +
     aes(x = saleyear, y = saleprice, fill = saleyear) +
     geom_col(alpha = alpha) +
+    geom_segment(aes(xend = saleyear, y = salemin, yend = salemax), size = 1, color = "gray50", alpha = 1) +
+    geom_point(aes(y = salemin), size = 3, color = "gray50", alpha = .7) +
+    geom_point(aes(y = salemax), size = 3, color = "gray50", alpha = .7) +
     scale_y_continuous(
-        breaks = 50000 * 0:20,
+        breaks = 100000 * 0:20,
         labels = scales::dollar_format(scale = 1 / 1000, suffix = "K")
     ) +
     labs(
