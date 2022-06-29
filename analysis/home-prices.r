@@ -4,6 +4,31 @@ theme_set(theme_light())
 
 load("Rdata/homesales.Rdata")
 
+homesales %>%
+    filter(!is.na(saledate), !is.na(amount)) %>%
+    mutate(quarter = quarter(saledate),
+            qlabel = paste0(saleyear,"Q",quarter)) %>%
+    ggplot() +
+    aes(x = qlabel, y = amount) +
+    geom_boxplot() +
+    scale_x_discrete() + 
+    scale_y_continuous(
+        labels = scales::dollar_format(),
+        limits = c(0, NA),
+        sec.axis = sec_axis(~ . / lowest_amount - 1,
+            labels = scales::percent_format(),
+            name = "Relative to 2017 mean sale amount"
+        )
+    ) +
+    labs(
+        y = "Sale price (in USD)",
+        x = "Date by year/quarter",
+        caption = "Dotted line represents 2017 median sale price" # nolint
+    ) +
+    geom_hline(yintercept = lowest_amount, alpha = .7, lty = 3) + 
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+
 quarter_summary <-
     homesales %>%
     filter(!is.na(saledate), !is.na(amount)) %>%
@@ -32,6 +57,31 @@ lowest_amount <- with(
         na.rm = TRUE
     )
 )
+
+homesales %>%
+    filter(!is.na(saledate), !is.na(amount)) %>%
+    mutate(quarter = quarter(saledate),
+            qlabel = paste0(saleyear,"Q",quarter)) %>%
+    ggplot() +
+    aes(x = qlabel, y = amount) +
+    geom_boxplot() +
+    scale_x_discrete() + 
+    scale_y_continuous(
+        labels = scales::dollar_format(scale = 1/1000, suffix = "K"),
+        limits = c(0, NA),
+        sec.axis = sec_axis(~ . / lowest_amount - 1,
+            labels = scales::percent_format(),
+            name = "Relative to 2017 mean sale amount"
+        )
+    ) +
+    labs(
+        y = "Sale price (in USD)",
+        x = "Date by year/quarter",
+        caption = "Dotted line represents 2017 mean average sale price"
+    ) +
+    geom_hline(yintercept = lowest_amount, alpha = .7, lty = 3) + 
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
 
 quarter_summary %>%
     ggplot() +
