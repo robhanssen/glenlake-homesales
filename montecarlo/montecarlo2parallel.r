@@ -90,7 +90,7 @@ multip <- foreach(p =period_list, .combine = rbind) %dopar% multiperiod(p) %>%
     rename(data = V1)# %>% 
     #mutate(data = data + mkt_beginyear$growth)
 
-ggplot(xm) + 
+ggplot(multip) + 
     aes(data, factor(period), fill = factor(period)) + 
     geom_density_ridges(alpha = .2) +
     scale_x_continuous(labels = scales::dollar_format())
