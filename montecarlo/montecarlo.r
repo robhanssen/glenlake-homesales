@@ -15,9 +15,9 @@ period_list <- sort(c(60, 120, 90 * 2:4))
 period <- 180
 
 homesalesorig <- homesales
-jnow = ymd(20210630)
+jnow <- today()
 
-homesales <- homesales %>% filter(saledate < today() - years(1))
+homesales <- homesales %>% filter(saledate < jnow)
 
 
 homesales_adjusted <- homesales %>% filter(!is.na(amount))
@@ -30,15 +30,16 @@ cusales <- homesales_adjusted %>%
     arrange(saledate) %>%
     mutate(y = 1, cusale = cumsum(y), cumkt = cumsum(amount))
 
-mod_listings <- lm(culisting ~ listingdate, data = cumulative %>% filter(listingdate > jnow - days(period))) %>% coef(.)
+mod_listings <- lm(culisting ~ listingdate, data = cumulative %>%
+    filter(listingdate > jnow - days(period))) %>%
+    coef(.)
 slope <- as.numeric(mod_listings[2])
 
-exp_residual_sales <- as.numeric((ceiling_date(jnow, unit = "year") - jnow) * slope)
 freq <- 1 / slope
 
 median_sale <- with(
     homesales_adjusted %>% filter(saledate > jnow - days(period)),
-    median(amount)
+    median(amount, na.rm = TRUE)
 )
 
 median_time <- with(
@@ -70,9 +71,7 @@ for (n in seq_along(numberlist)) {
         }
     }
     max_output <- totalsale
-    # print(paste(n, totalsale))
     numberlist[n] <- max_output
 }
 
 hist(numberlist + mkt_beginyear$growth)
-# boxplot(numberlist + mkt_beginyear$growth)
