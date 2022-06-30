@@ -10,9 +10,9 @@ doParallel::registerDoParallel(cores = 8)
 load("Rdata/homesales.Rdata")
 
 
-period_list <- sort(c(60, 120, 90 * 2:6))
+period_list <- sort(c(60, 30 * 3:6))
 
-multiperiod <- function(period) {
+multiperiod <- function(period, niter = 1000) {
 
     library(tidyverse)
     library(lubridate)
@@ -86,7 +86,7 @@ multiperiod <- function(period) {
 
 }
 
-multip <- foreach(p =period_list, .combine = rbind) %dopar% multiperiod(p) %>%
+multip <- foreach(p =period_list, .combine = rbind) %dopar% multiperiod(p, niter = 1000) %>%
     rename(data = V1)# %>% 
     #mutate(data = data + mkt_beginyear$growth)
 
