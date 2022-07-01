@@ -5,12 +5,12 @@ library(ggridges)
 source("functions/config.r")
 theme_set(theme_light())
 
-doParallel::registerDoParallel(cores = 8)
+doParallel::registerDoParallel(cores = 2)
 
 load("Rdata/homesales.Rdata")
 
 
-period_list <- sort(c(60, 30 * 3:6))
+period_list <- sort(c(60, 30 * 3:6, 270, 365))
 
 multiperiod <- function(period, niter = 1000) {
 
@@ -25,7 +25,7 @@ multiperiod <- function(period, niter = 1000) {
     }
 
 
-    doParallel::registerDoParallel(cores = 8)
+    doParallel::registerDoParallel(cores = 4)
     jnow <- today()
     homesales_adjusted <- homesales %>% filter(!is.na(amount))
 
