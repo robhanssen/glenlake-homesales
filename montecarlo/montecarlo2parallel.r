@@ -5,7 +5,7 @@ library(ggridges)
 source("functions/config.r")
 theme_set(theme_light())
 
-doParallel::registerDoParallel(cores = 2)
+doParallel::registerDoParallel(cores = 4)
 
 load("Rdata/homesales.Rdata")
 
