@@ -37,12 +37,13 @@ vignettes/*.pdf
 
 # R Environment Variables
 .Renviron
-
+Rplots.pdf
 Rdata/*.Rdata
 graphs/*.png
 graphs/*.pdf
 predictions/*.png
 dashboard.png
 data/*.csv
+montecarlo/*.png
 
 tmp/*
