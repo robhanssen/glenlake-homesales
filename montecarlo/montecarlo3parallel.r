@@ -10,7 +10,6 @@ load("Rdata/homesales.Rdata")
 period_list <- sort(c(60, 30 * 3:6, 270, 365))
 
 multiperiod <- function(period, homesales = homesales, niter = 1000) {
-
     library(doParallel)
     doParallel::registerDoParallel(cores = 4)
 
@@ -97,13 +96,18 @@ multiperiod <- function(period, homesales = homesales, niter = 1000) {
     dplyr::mutate(alist_t, period = period, data = V1)
 }
 
-multip <- 
-    foreach(p = period_list, .combine = rbind) %dopar% 
-        multiperiod(p, homesales = homesales, niter = 100)
+multip <-
+    foreach(p = period_list, .combine = rbind) %dopar%
+    multiperiod(p, homesales = homesales, niter = 1000)
 
 ggplot(multip) +
     aes(data, factor(period), fill = factor(period)) +
     geom_density_ridges(alpha = .2) +
-    scale_x_continuous(labels = scales::dollar_format())
+    scale_x_continuous(
+        labels = scales::dollar_format(scale = 1e-6, suffix = " M"),
+        breaks = 1e6 * 0:20
+    ) +
+    labs(x = "Expected market value", y = "Predictor period length (in days)") +
+    theme(legend.position = "none")
 
 ggsave("montecarlo/mc-par3.png")
