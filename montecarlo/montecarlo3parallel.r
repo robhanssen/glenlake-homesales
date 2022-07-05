@@ -81,8 +81,8 @@ multiperiod <- function(period, homesales = homesales, niter = 1000) {
         ldate <- now
 
         while (ldate < year_end) {
-            ldate <- ldate + lubridate::days(mc(freq, variability = .5))
-            sdate <- ldate + lubridate::days(mc(median_time, variability = .5))
+            ldate <- ldate + lubridate::days(mc(freq, variability = .7))
+            sdate <- ldate + lubridate::days(mc(median_time, variability = .7))
             if (sdate < year_end) {
                 sale <- mc(median_sale, variability = .2)
                 totalsale <- totalsale + sale
