@@ -18,6 +18,16 @@ homes_sold_last_12months <- function(tbl, date) {
     tibble::tibble(date = date, homesold = nrow(sale_data))
 }
 
+homes_listed_last_12months <- function(tbl, date) {
+    date_year_ago <- date - lubridate::years(1)
+    listing_data <-
+        tbl %>%
+        filter(listingdate > date_year_ago, listingdate <= date)
+
+    tibble::tibble(date = date, homeslisted = nrow(listing_data))
+}
+
+
 datelist <-
     with(
         homesales_filtered,
@@ -36,18 +46,23 @@ monthlist <- c(
 sold_last_year_by_month <-
     map_dfr(monthlist, ~ homes_sold_last_12months(homesales_filtered, .x))
 
-sold_last_year_by_month %>%
+listed_last_year_by_month <-
+    map_dfr(monthlist, ~ homes_listed_last_12months(homesales, .x))
+
+listed_last_year_by_month %>%
     filter(date >= first(datelist) + years(1)) %>%
     ggplot() +
-    aes(date, homesold) +
+    aes(date, homeslisted) +
     geom_line() +
+    geom_line(data = sold_last_year_by_month %>% filter(date >= first(datelist) + years(1)),
+                aes(y = homesold), color = "red") +
     scale_x_date() +
     scale_y_continuous(limits = c(0, NA), breaks = 10 * 0:100) +
     labs(
         x = "Date",
-        y = "Number of home sales in the last 12 months",
-        title = "Glen Lake average home sales in 12 months",
-        caption = caption_source
+        y = "Number of homes listed or sold in the last 12 months",
+        title = "Glen Lake average home listings and sales in 12 months",
+        caption = paste0(caption_source, "\nBlack line: listings; Red line: sales")
     )
 
 ggsave("graphs/average-homesales-per-12-months.png")
