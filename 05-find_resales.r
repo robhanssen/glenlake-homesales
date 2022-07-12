@@ -177,6 +177,15 @@ hometurnover %>%
        theme(legend.position = "none")
 
 
+max_time <- with(
+       homesales,
+       (max(saledate, na.rm = TRUE) - min(saledate, na.rm = TRUE)) / dyears(1)
+)
+homessold <- nrow(homesales %>% filter(!is.na(saledate)))
+
+real_average <- (homessold / 482) / max_time
+real_restime <- 1 / real_average
+
 
 hometurnover %>%
        ggplot() +
@@ -190,6 +199,11 @@ hometurnover %>%
        ggtitle("Residence time by street") +
        labs(x = "Street", y = "Average residence time (in years)") +
        scale_fill_manual(values = colorset) +
+       geom_hline(
+              yintercept = real_restime,
+              lty = 2,
+              color = "gray50"
+       ) +       
        coord_flip() +
        theme_light() +
        theme(legend.position = "none")
@@ -206,7 +220,6 @@ caption <- paste0(
        "%)",
        "\n PH: patio home; TH: townhome"
 )
-
 
 hometurnover %>%
        ggplot() +
@@ -231,6 +244,11 @@ hometurnover %>%
               yintercept = turnoverlimits / data_time_length,
               lty = 2,
               color = "gray50"
+       ) +
+       geom_hline(
+       yintercept = real_average,
+       lty = 2,
+       color = "gray50"
        ) +
        scale_fill_manual(values = colorset) +
        coord_flip() +
