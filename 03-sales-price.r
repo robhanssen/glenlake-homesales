@@ -49,17 +49,19 @@ medianprice %>%
         geom_text(aes(label = scales::dollar(medianprice,
                 scale = 1e-3,
                 accuracy = 1,
-                suffix = "K"
+                suffix = "",
+                prefix = ""
         )),
         position = position_dodge(width = 0.9),
         vjust = -1
         ) +
         annotate("text",
                 x = max_year,
-                y = 30000,
+                y = 50000,
                 label = paste(max_year, "YTD", sep = ""),
                 angle = 90
-        )
+        ) +
+        theme(legend.position = "none")
 
 ggsave("graphs/salesprice-median.png", width = 8, height = 6)
 
