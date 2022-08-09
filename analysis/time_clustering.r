@@ -1,4 +1,5 @@
 library(tidyverse)
+library(lubridate)
 
 load("Rdata/homesales.Rdata")
 
@@ -16,7 +17,7 @@ med2022 <-
 
 
 homesales %>%
-    filter(listingyear >= 2021) %>%
+    filter(listingyear >= 2022) %>%
     mutate(onmarket = case_when(
         is.na(saledate) & is.na(undercontract) ~ "for sale",
         is.na(saledate) ~ "under contract",
