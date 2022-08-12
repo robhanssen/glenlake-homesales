@@ -4,6 +4,11 @@ theme_set(theme_light())
 
 load("Rdata/homesales.Rdata")
 
+normal_date <- function(date, projected_year = year(today())) {
+        y <- lubridate::year(date)
+        date + lubridate::years(projected_year - y)
+}
+
 inventorycalc <-
         homesales %>%
         select(address, listingdate, saledate) %>%
@@ -17,7 +22,39 @@ inventorycalc <-
         mutate(
                 inventory = cumsum(y),
                 year = year(date)
+        ) %>%
+        select(date, inventory, year)
+
+
+all_dates <- tibble(
+        date = seq(
+                min(inventorycalc$date),
+                max(inventorycalc$date),
+                by = "day"
         )
+)
+
+inventory_means <-
+        inventorycalc %>%
+        right_join(all_dates) %>%
+        arrange(date) %>%
+        fill(inventory) %>%
+        mutate(display_date = normal_date(date)) %>%
+        group_by(display_date) %>%
+        summarize(
+                mn_inventory = mean(inventory, na.rm = TRUE),
+                md_inventory = median(inventory,
+                        na.rm = TRUE,
+                        .groups = "drop"
+                )
+        ) %>%
+        mutate(across(ends_with("inventory"),
+                .names = "{.col}_soft",
+                ~ zoo::rollmean(.x, 7, na.pad = TRUE, align = "center")
+        )) %>%
+        drop_na()
+
+
 
 inventorycalc %>%
         ggplot() +
@@ -34,24 +71,6 @@ inventorycalc %>%
 
 ggsave("graphs/home-inventory-fullrange.png", width = 6, height = 6)
 
-ml <- floor(seq(0, 364, length.out = 12))
-
-inventory_minmax <-
-        inventorycalc %>%
-        mutate(display_date = normal_date(date, max_year),
-                mn = month(display_date)) %>%
-        group_by(mn) %>%
-        summarize(med_inv = median(inventory, na.rm = TRUE),
-                mean_inv = mean(inventory, , na.rm = TRUE),
-                .groups = "drop") %>% 
-        mutate(display_date = as.Date(paste0(max_year, "-01-01")) + days(ml))
-
-
-normal_date <- function(date, projected_year) {
-        y <- lubridate::year(date)
-        date + lubridate::years(projected_year - y)
-}
-
 year_range <- unique(homesales$listingyear)
 year_length <- length(year_range)
 color_range <- c(rep("gray50", year_length - 1), "black")
@@ -67,11 +86,9 @@ inventorycalc %>%
                 alpha = factor(year)
         ) +
         geom_line(
-                data = inventory_minmax,
+                data = inventory_means,
                 aes(
-                        # ymin = med_inv,
-                        y = mean_inv,
-                        # y = NULL,
+                        y = md_inventory_soft,
                         color = NULL,
                         alpha = NULL
                 ),
