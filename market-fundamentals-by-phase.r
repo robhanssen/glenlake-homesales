@@ -123,4 +123,4 @@ cleaned_up_final %>%
     annotate("text", x = ymd(20220501), y = .13, label = "Front", color = "red") +
     annotate("text", x = ymd(20220501), y = .08, label = "Total", color = "gray50")
 
-ggsave("graphs/hometurnover-by-phase.png", width = 8, height = 6)
+ggsave("graphs/turnover-by-phase.png", width = 8, height = 6)
