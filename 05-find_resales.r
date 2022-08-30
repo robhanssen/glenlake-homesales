@@ -12,46 +12,36 @@ totalhomes <- with(glenlakehomes, sum(numberofhomes))
 totalsold <- nrow(homesales)
 averageturnover <- totalsold / totalhomes
 
-dupes <- homesales %>%
-       filter(duplicated(address) | duplicated(address, fromLast = TRUE)) %>%
-       arrange(address) %>%
-       group_by(address) %>%
-       mutate(
-              lagtime = listingdate - lag(saledate),
-              lagtime = time_length(lagtime, "months"),
-              streetname = substr(address, 5, 100)
-       ) %>%
-       ungroup() %>%
-       select(address:hometype, lagtime, streetname)
+resales <-
+    homesales %>%
+    arrange(address, listingdate) %>%
+    group_by(address) %>%
+    mutate(lagtime = (listingdate - lag(saledate)) / dmonths(1)) %>%
+    drop_na(lagtime) %>%
+    mutate(address_year = glue::glue("{address} ({listingyear})"))
 
-dupes %>%
-       filter(!is.na(lagtime)) %>%
-       arrange(lagtime) %>%
-       mutate(interact = interaction(address, listingdate)) %>%
-       ggplot() +
-       aes(
-              x = fct_reorder(interact, -lagtime),
-              y = lagtime,
-              fill = hometype
-       ) +
-       geom_bar(stat = "identity") +
-       labs(
-              y = "Time between sale and next listing (in months)",
-              x = "Address",
-              fill = "Type of home", caption = caption
-       ) +
-       scale_x_discrete(labels = dupes %>%
-              arrange(-lagtime) %>%
-              pull(address)) +
-       scale_y_continuous(breaks = 12 * 1:10) +
-       coord_flip()
+resales %>%
+    ggplot() +
+    aes(
+        y = fct_reorder(address_year, -lagtime),
+        x = lagtime,
+        fill = hometype
+    ) +
+    geom_col() +
+    labs(
+        x = "Time between sale and next listing (in months)",
+        y = "Address",
+        fill = "Type of home", caption = caption
+    ) +
+    scale_x_continuous(breaks = 12 * 1:10) +
+    theme(legend.position = c(.8, .8))
 
 ggsave("graphs/turnover-time.png", width = 8, height = 6)
 
-dupes %>%
+resales %>%
        group_by(address) %>%
        summarize(
-              resales = n(),
+              resales = n() + 1,
               .groups = "drop"
        ) %>%
        slice_max(resales, n = 10) %>%
