@@ -4,30 +4,47 @@ theme_set(theme_light())
 
 load("Rdata/homesales.Rdata")
 
-homesales %>%
+lowest_amount <- with(
+    homesales,
+    median(amount[saleyear == 2019 | saleyear == 2018],
+        na.rm = TRUE
+    )
+)
+
+qlabeled_homesales <-
+    homesales %>%
     filter(!is.na(saledate), !is.na(amount)) %>%
-    mutate(quarter = quarter(saledate),
-            qlabel = paste0(saleyear,"Q",quarter)) %>%
+    mutate(
+        quarter = quarter(saledate),
+        qlabel = paste0(saleyear, "Q", quarter),
+        qlabel = factor(qlabel)
+    )
+
+qlabeled_homesales %>%
     ggplot() +
     aes(x = qlabel, y = amount) +
     geom_boxplot() +
-    scale_x_discrete() + 
+    scale_x_discrete() +
     scale_y_continuous(
         labels = scales::dollar_format(),
         limits = c(0, NA),
         sec.axis = sec_axis(~ . / lowest_amount - 1,
             labels = scales::percent_format(),
-            name = "Relative to 2017 mean sale amount"
+            name = "Relative to 2018/19 median sale price"
         )
     ) +
     labs(
         y = "Sale price (in USD)",
         x = "Date by year/quarter",
-        caption = "Dotted line represents 2017 median sale price" # nolint
     ) +
-    geom_hline(yintercept = lowest_amount, alpha = .7, lty = 3) + 
-    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
-
+    geom_hline(yintercept = lowest_amount, alpha = .7, lty = 3) +
+    annotate("text",
+        x = last(qlabeled_homesales$qlabel),
+        y = lowest_amount - 10000,
+        hjust = "right",
+        label = "2018/19 median sale price"
+    ) +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 
 quarter_summary <-
     homesales %>%
@@ -51,61 +68,26 @@ quarter_summary <-
         .lower = mean_amount - stderr
     )
 
-lowest_amount <- with(
-    homesales,
-    mean(amount[saleyear == 2017],
-        na.rm = TRUE
-    )
-)
-
-homesales %>%
-    filter(!is.na(saledate), !is.na(amount)) %>%
-    mutate(quarter = quarter(saledate),
-            qlabel = paste0(saleyear,"Q",quarter)) %>%
-    ggplot() +
-    aes(x = qlabel, y = amount) +
-    geom_boxplot() +
-    scale_x_discrete() + 
-    scale_y_continuous(
-        labels = scales::dollar_format(scale = 1/1000, suffix = "K"),
-        limits = c(0, NA),
-        sec.axis = sec_axis(~ . / lowest_amount - 1,
-            labels = scales::percent_format(),
-            name = "Relative to 2017 mean sale amount"
-        )
-    ) +
-    labs(
-        y = "Sale price (in USD)",
-        x = "Date by year/quarter",
-        caption = "Dotted line represents 2017 mean average sale price"
-    ) +
-    geom_hline(yintercept = lowest_amount, alpha = .7, lty = 3) + 
-    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
-
-
 quarter_summary %>%
     ggplot() +
     aes(x = date) +
-    geom_col(aes(y = mean_amount), alpha = .5, color = "gray50") +
-    geom_ribbon(aes(
-        ymin = min_amount,
-        ymax = max_amount,
-        y = NULL
-    ),
-    alpha = .2
-    ) +
-    geom_errorbar(aes(ymin = .lower, ymax = .upper), width = 20) +
+    geom_line(aes(y = median_amount)) +
     scale_y_continuous(
         labels = scales::dollar_format(),
         limits = c(0, NA),
         sec.axis = sec_axis(~ . / lowest_amount - 1,
             labels = scales::percent_format(),
-            name = "Relative to 2017 mean sale amount"
+            name = "Relative to 2018/19 mean sale amount"
         )
     ) +
     labs(
         y = "Sale price (in USD)",
         x = "Date by year/quarter",
-        caption = "Ribbon represents highest and lower sale price per quarter. Error bars are 95% confidence interval" # nolint
+    ) +
+    annotate("text",
+        x = max(quarter_summary$date),
+        y = lowest_amount - 10000,
+        hjust = "right",
+        label = "2018/19 median sale price"
     ) +
     geom_hline(yintercept = lowest_amount, alpha = .7, lty = 3)
