@@ -68,13 +68,13 @@ quarter_summary <-
         .lower = mean_amount - stderr
     )
 
-quarter_summary %>%
+quarter_plot <- quarter_summary %>%
     ggplot() +
     aes(x = date) +
     geom_line(aes(y = median_amount)) +
     scale_y_continuous(
         labels = scales::dollar_format(),
-        limits = c(0, NA),
+        limits = c(0, 2 * lowest_amount),
         sec.axis = sec_axis(~ . / lowest_amount - 1,
             labels = scales::percent_format(),
             name = "Relative to 2018/19 mean sale amount"
