@@ -33,7 +33,7 @@ homesales %>%
     geom_col() + 
     labs(x = "Sale price", 
         y = "Address",
-        title = "Record sale price") +
+        title = "Record sale price") 
 
 homesales %>%
     filter(!is.na(saledate)) %>%
