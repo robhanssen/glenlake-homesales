@@ -3,12 +3,19 @@ library(lubridate)
 
 load("Rdata/homesales.Rdata")
 
-min_date <- lubridate::ceiling_date(min(dat$saledate, na.rm = TRUE), unit = "month")
-max_date <- lubridate::ceiling_date(lubridate::today(), unit = "month")
+min_date <- lubridate::ceiling_date(
+    min(dat$saledate, na.rm = TRUE),
+    unit = "month"
+)
+
+max_date <- lubridate::ceiling_date(lubridate::today(),
+    unit = "month"
+)
+
 date_range <- seq(min_date, max_date, "month")
 
 
-period_lenght <- 3 # months
+period_length <- 3 # months
 
 map_dfr(
     date_range,
@@ -16,12 +23,12 @@ map_dfr(
         date = .x,
         sold = homesales %>% filter(
             saledate < .x,
-            saledate > .x - months(period_lenght)
+            saledate > .x - months(period_length)
         ) %>%
             nrow()
     )
-) %>% 
-ggplot +
+) %>%
+    ggplot() +
     aes(date, sold) +
     geom_point() +
     geom_line() +
