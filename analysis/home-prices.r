@@ -91,3 +91,39 @@ quarter_plot <- quarter_summary %>%
         label = "2018/19 median sale price"
     ) +
     geom_hline(yintercept = lowest_amount, alpha = .7, lty = 3)
+
+amount2022 <- with(
+    homesales,
+    median(amount[saleyear == 2022],
+        na.rm = TRUE
+    )
+)
+
+# 6-color set from ColorBrewers
+colors <- c('#d7191c','#fdae61','#ffffbf','#abd9e9','#2c7bb6')
+
+chc <- scales::percent(amount2022 / lowest_amount - 1, prefix = "+")
+
+
+homesales %>%
+    filter(!is.na(saledate), hometype != "townhome", saleyear > 2017) %>%
+    mutate(year = factor(saleyear)) %>%
+    ggplot + 
+    aes(x = amount, y = year, fill = year, color = year) +
+    ggridges::geom_density_ridges(show.legend = FALSE, alpha = .8) + 
+    scale_x_continuous(labels = scales::dollar_format(), 
+                        sec.axis = sec_axis(~ . / lowest_amount -1, 
+                                        labels = scales::percent_format(),
+                                        ),
+                        breaks = 1e5 * 0:10) + 
+    geom_vline(xintercept = c(lowest_amount, amount2022),
+                lty = 1, size = 2, alpha = .2) + 
+    labs(x = "Home sale price", y = NULL,
+            title = "Changes in home sale prices in Glen Lake",
+            ) +
+    annotate("text", x = lowest_amount - 5e3, y = .75, label = "Median value\n2018/2019", hjust = 1) +
+    annotate("text", x = amount2022 + 5e3, y = .75, label = glue::glue("Median value\n2022 ({chc})"), hjust = 0)  +
+    scale_fill_manual(values = colors) +
+    scale_color_manual(values = colors)
+
+ggsave("graphs/saleamount-change.png", width = 8, height = 7)
