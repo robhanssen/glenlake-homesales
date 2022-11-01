@@ -100,7 +100,7 @@ amount2022 <- with(
 )
 
 # 5-color set from ColorBrewers
-colors <- c('#e41a1c','#377eb8','#4daf4a','#984ea3','#ff7f00')
+colors <- c("#e41a1c", "#377eb8", "#4daf4a", "#984ea3", "#ff7f00")
 
 chc <- scales::percent(amount2022 / lowest_amount - 1, prefix = "+")
 
@@ -108,22 +108,29 @@ chc <- scales::percent(amount2022 / lowest_amount - 1, prefix = "+")
 homesales %>%
     filter(!is.na(saledate), hometype != "townhome", saleyear > 2017) %>%
     mutate(year = factor(saleyear)) %>%
-    ggplot + 
+    ggplot() +
     aes(x = amount, y = year, fill = year, color = year) +
-    geom_vline(xintercept = c(lowest_amount, amount2022),
-                lty = 1, size = 2, alpha = .2) + 
-    ggridges::geom_density_ridges2(show.legend = FALSE, alpha = .4) + 
-    scale_x_continuous(labels = scales::dollar_format(), 
-                        sec.axis = sec_axis(~ . / lowest_amount -1, 
-                                        labels = scales::percent_format(),
-                                        ),
-                        breaks = 1e5 * 0:10) + 
+    geom_vline(
+        xintercept = c(lowest_amount, amount2022),
+        lty = 1, size = 2, alpha = .2
+    ) +
+    ggridges::geom_density_ridges2(show.legend = FALSE, alpha = .4) +
+    scale_x_continuous(
+        labels = scales::dollar_format(),
+        sec.axis = sec_axis(~ . / lowest_amount - 1,
+            labels = scales::percent_format(),
+        ),
+        breaks = 1e5 * 0:10
+    ) +
 
-    labs(x = "Home sale price", y = NULL,
-            title = "Changes in home sale prices in Glen Lake",
-            ) +
-    annotate("text", x = lowest_amount - 5e3, y = .75, label = "Median value\n2018/2019", hjust = 1) +
-    annotate("text", x = amount2022 + 5e3, y = .75, label = glue::glue("Median value\n2022 ({chc})"), hjust = 0)  +
+    labs(
+        x = "Home sale price", y = NULL,
+        title = "Changes in home sale prices in Glen Lake",
+    ) +
+    annotate("text", x = lowest_amount - 5e3, y = .75,
+            label = "Median value\n2018/2019", hjust = 1) +
+    annotate("text", x = amount2022 + 5e3, y = .75,
+            label = glue::glue("Median value\n2022 ({chc})"), hjust = 0) +
     scale_fill_manual(values = colors) +
     scale_color_manual(values = colors)
 
@@ -131,7 +138,9 @@ homesales %>%
 
 
 homesales2018 <-
-    homesales %>% filter(saleyear == 2018) %>% mutate(saleyear = 2017.5)
+    homesales %>%
+    filter(saleyear == 2018) %>%
+    mutate(saleyear = 2017.5)
 
 am_factor <- amount2022 / lowest_amount
 
@@ -140,24 +149,42 @@ homesales %>%
     filter(saleyear %in% c(2018, 2022)) %>%
     bind_rows(homesales2018) %>%
     mutate(year = factor(saleyear)) %>%
-    mutate(amount = case_when(year == 2018 ~ amount * am_factor, TRUE ~ amount)) %>%
-    mutate(dyear = case_when(year == 2018.5 ~ "2018\n(actual)", year == 2018 ~ "2018\n(extrapolated)", TRUE ~ paste(year, "\n(actual)"))) %>%
-    ggplot + 
+    mutate(amount = case_when(
+        year == 2018 ~ amount * am_factor,
+        TRUE ~ amount
+    )) %>%
+    mutate(dyear = case_when(
+        year == 2018.5 ~ "2018\n(actual)",
+        year == 2018 ~ "2018\n(extrapolated)",
+        TRUE ~ paste(year, "\n(actual)")
+    )) %>%
+    ggplot() +
     aes(x = amount, y = dyear, fill = year, color = year) +
-    geom_vline(xintercept = c(lowest_amount, amount2022),
-                lty = 1, size = 2, alpha = .2) + 
-    ggridges::geom_density_ridges2(show.legend = FALSE, alpha = .4) + 
-    scale_x_continuous(labels = scales::dollar_format(), 
-                        sec.axis = sec_axis(~ . / lowest_amount -1, 
-                                        labels = scales::percent_format(),
-                                        ),
-                        breaks = 1e5 * 0:10) + 
-    labs(x = "Home sale price", y = NULL,
-            title = "Changes in home sale prices in Glen Lake",
-            subtitle = glue::glue("Prices in 2018 were extrapolated to 2022 by changing {chc}")
-            ) +
-    annotate("text", x = lowest_amount - 5e3, y = .75, label = "Median value\n2018/2019", hjust = 1) +
-    annotate("text", x = amount2022 + 5e3, y = .75, label = glue::glue("Median value\n2022 ({chc})"), hjust = 0)  +
+    geom_vline(
+        xintercept = c(lowest_amount, amount2022),
+        lty = 1, size = 2, alpha = .2
+    ) +
+    ggridges::geom_density_ridges2(show.legend = FALSE, alpha = .4) +
+    scale_x_continuous(
+        labels = scales::dollar_format(),
+        sec.axis = sec_axis(~ . / lowest_amount - 1,
+            labels = scales::percent_format(),
+        ),
+        breaks = 1e5 * 0:10
+    ) +
+    labs(
+        x = "Home sale price", y = NULL,
+        title = "Changes in home sale prices in Glen Lake",
+        subtitle = glue::glue("Prices in 2018 were extrapolated to 2022 by changing {chc}") # nolint
+    ) +
+    annotate("text",
+        x = lowest_amount - 5e3, y = .75,
+        label = "Median value\n2018/2019", hjust = 1
+    ) +
+    annotate("text",
+        x = amount2022 + 5e3, y = .75,
+        label = glue::glue("Median value\n2022 ({chc})"), hjust = 0
+    ) +
     scale_fill_manual(values = colors) +
     scale_color_manual(values = colors)
 
