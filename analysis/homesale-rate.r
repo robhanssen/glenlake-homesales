@@ -4,7 +4,7 @@ library(lubridate)
 load("Rdata/homesales.Rdata")
 
 min_date <- lubridate::ceiling_date(
-    min(dat$saledate, na.rm = TRUE),
+    min(homesales$saledate, na.rm = TRUE),
     unit = "month"
 )
 
