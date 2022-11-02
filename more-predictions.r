@@ -34,6 +34,7 @@ ggsave("predictions/horizon-market-value.png", plot = p1, width = 8, height = 6)
 
 p2 <-
     map_df(period_list, ~ predict_listing_rate(homesales, .x)) %>%
+    mutate(amount_listed = ifelse(amount_listed > 200, NA_real_, amount_listed)) %>%
     ggplot() +
     aes(factor(period), amount_listed) +
     geom_col(alpha = .8) +
