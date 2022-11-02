@@ -92,9 +92,18 @@ quarter_plot <- quarter_summary %>%
     ) +
     geom_hline(yintercept = lowest_amount, alpha = .7, lty = 3)
 
+
+lowest_amount <- with(
+    homesales,
+    median(amount[(saleyear == 2019 | saleyear == 2018) & hometype != "townhome"],
+        na.rm = TRUE
+    )
+)
+
+
 amount2022 <- with(
     homesales,
-    median(amount[saleyear == 2022],
+    median(amount[saleyear == 2022 & hometype != "townhome"],
         na.rm = TRUE
     )
 )
