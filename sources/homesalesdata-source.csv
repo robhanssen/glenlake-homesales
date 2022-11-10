@@ -226,3 +226,5 @@
 547 Marchbanks,08-27-2022,,,residential,1
 823 Culverhouse,09-27-2022,,,residential,
 504 Marchbanks,09-28-2022,,,residential,1
+ # sale to prevent foreclosure - remove if home actually is for sale
+214 Bridgeport,11-01-2022,11-04-2022,301000,residential,
