@@ -43,7 +43,7 @@ predict_market_size <- function(tbl, period) {
             names_from = date,
             values_from = .fitted
         ) %>%
-        mutate(amount_sold = cur_data()[[2]] - cur_data()[[1]]) %>%
+        mutate(amount_sold = pick(everything())[[2]] - pick(everything())[[1]]) %>%
         select(amount_sold)
 
 
@@ -96,7 +96,7 @@ predict_listing_rate <- function(tbl, period) {
             names_from = date,
             values_from = .fitted
         ) %>%
-        mutate(amount_listed = cur_data()[[2]] - cur_data()[[1]]) %>%
+        mutate(amount_listed = pick(everything())[[2]] - pick(everything())[[1]]) %>%
         select(amount_listed)
 
 
@@ -149,7 +149,7 @@ predict_sale_rate <- function(tbl, period) {
             names_from = date,
             values_from = .fitted
         ) %>%
-        mutate(amount_listed = cur_data()[[2]] - cur_data()[[1]]) %>%
+        mutate(amount_listed = pick(everything())[[2]] - pick(everything())[[1]]) %>%
         select(amount_listed)
 
 
