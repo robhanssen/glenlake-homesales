@@ -22,7 +22,7 @@ amount_thisyear <- with(
 )
 
 # 5-color set from ColorBrewers
-colors <- c("#e41a1c", "#377eb8", "#4daf4a", "#984ea3", "#ff7f00")
+colors <- c("#e41a1c", "#377eb8", "#4daf4a", "#984ea3", "#ff7f00", "darkgreen")
 
 chc <- scales::percent(amount_thisyear / lowest_amount - 1, prefix = "+")
 
