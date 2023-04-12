@@ -12,29 +12,33 @@ totalhomes <- with(glenlakehomes, sum(numberofhomes))
 totalsold <- nrow(homesales)
 averageturnover <- totalsold / totalhomes
 
+pdf_lognorm <- function(x, mu, sig) {
+       .5 * (1 + pracma::erf((log(x) - mu) / (sqrt(2) * sig)))
+}
+
 resales <-
-    homesales %>%
-    arrange(address, listingdate) %>%
-    group_by(address) %>%
-    mutate(lagtime = (listingdate - lag(saledate)) / dmonths(1)) %>%
-    drop_na(lagtime) %>%
-    mutate(address_year = glue::glue("{address} ({listingyear})"))
+       homesales %>%
+       arrange(address, listingdate) %>%
+       group_by(address) %>%
+       mutate(lagtime = (listingdate - lag(saledate)) / dmonths(1)) %>%
+       drop_na(lagtime) %>%
+       mutate(address_year = glue::glue("{address} ({listingyear})"))
 
 resales %>%
-    ggplot() +
-    aes(
-        y = fct_reorder(address_year, -lagtime),
-        x = lagtime,
-        fill = hometype
-    ) +
-    geom_col() +
-    labs(
-        x = "Time between sale and next listing (in months)",
-        y = "Address",
-        fill = "Type of home", caption = caption
-    ) +
-    scale_x_continuous(breaks = 12 * 1:10) +
-    theme(legend.position = c(.8, .8))
+       ggplot() +
+       aes(
+              y = fct_reorder(address_year, -lagtime),
+              x = lagtime,
+              fill = hometype
+       ) +
+       geom_col() +
+       labs(
+              x = "Time between sale and next listing (in months)",
+              y = "Address",
+              fill = "Type of home", caption = caption
+       ) +
+       scale_x_continuous(breaks = 12 * 1:10) +
+       theme(legend.position = c(.8, .8))
 
 ggsave("graphs/turnover-time.png", width = 8, height = 6)
 
@@ -193,7 +197,7 @@ hometurnover %>%
               yintercept = real_restime,
               lty = 2,
               color = "gray50"
-       ) +       
+       ) +
        coord_flip() +
        theme_light() +
        theme(legend.position = "none")
@@ -236,9 +240,9 @@ hometurnover %>%
               color = "gray50"
        ) +
        geom_hline(
-       yintercept = real_average,
-       lty = 2,
-       color = "gray50"
+              yintercept = real_average,
+              lty = 2,
+              color = "gray50"
        ) +
        scale_fill_manual(values = colorset) +
        coord_flip() +
@@ -246,3 +250,63 @@ hometurnover %>%
        theme(legend.position = "none")
 
 ggsave("graphs/turnover-rate-by-street.png", width = 12, height = 6)
+
+
+#
+# CDF
+#
+
+sorted_resales <-
+       resales %>%
+       arrange(lagtime)
+
+total_resales <- nrow(sorted_resales)
+max_lag <- (max(resales$lagtime) %/% 25 + 1) * 25
+
+logparam <-
+       with(
+              resales,
+              list(
+                     mean = mean(log(lagtime)),
+                     sd = sd(log(lagtime))
+              )
+       )
+
+resales_cdf <-
+       map_dfr(1:max_lag, ~ tibble(
+              time = .x,
+              cdf = nrow(resales %>% filter(lagtime < .x)) / total_resales,
+              cdf_simul = pdf_lognorm(.x, logparam[["mean"]], logparam[["sd"]])
+       ))
+
+resales_halftime <- with(
+       resales_cdf,
+       approx(cdf, time,
+              xout = .5,
+              na.rm = TRUE
+       )
+) %>% as_tibble()
+
+timespan <- ceiling((today() - min(resales$listingdate, na.rm = TRUE)) / dmonths(1))
+
+
+relist <-
+       resales_cdf %>%
+       ggplot(aes(time, cdf)) +
+       geom_point(alpha = .5, shape = 1) +
+       geom_point(data = resales_halftime, aes(y, x), shape = 3, size = 15) +
+       geom_line(aes(y = cdf_simul), alpha = .2, linewidth = 2) +
+       scale_y_continuous(labels = scales::label_percent()) +
+       labs(
+              x = "Relisting time (in months)", y = "",
+              title = glue::glue(
+                     "The expected relisting time for homes ",
+                     "is {round(resales_halftime$y)} months"),
+              caption = glue::glue("Based on a dataset comprising {timespan} months of resale data")
+       ) +
+       theme(plot.title.position = "plot")
+
+ggsave("graphs/relisting_cdf.png",
+       width = 6, height = 4,
+       plot = relist
+)
