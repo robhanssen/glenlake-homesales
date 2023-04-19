@@ -255,6 +255,14 @@ ggsave("graphs/turnover-rate-by-street.png", width = 12, height = 6)
 #
 # CDF
 #
+resales <-
+       homesales %>%
+       arrange(address, listingdate) %>%
+       group_by(address) %>%
+       mutate(lagtime = (saledate - lag(saledate)) / dmonths(1)) %>%
+       ungroup() %>%
+       drop_na(lagtime) %>%
+       mutate(address_year = glue::glue("{address} ({listingyear})"))
 
 sorted_resales <-
        resales %>%
@@ -287,10 +295,10 @@ resales_halftime <- with(
        )
 ) %>% as_tibble()
 
-timespan <- ceiling((today() - min(resales$listingdate, na.rm = TRUE)) / dmonths(1))
+timespan <- ceiling((today() - min(homesales$listingdate, na.rm = TRUE)) / dmonths(1))
 
 
-relist <-
+resale_graph <-
        resales_cdf %>%
        ggplot(aes(time, cdf)) +
        geom_point(alpha = .5, shape = 1) +
@@ -298,15 +306,15 @@ relist <-
        geom_line(aes(y = cdf_simul), alpha = .2, linewidth = 2) +
        scale_y_continuous(labels = scales::label_percent()) +
        labs(
-              x = "Relisting time (in months)", y = "",
+              x = "Resale time (in months)", y = "",
               title = glue::glue(
-                     "The expected relisting time for homes ",
+                     "The expected resale time for homes ",
                      "is {round(resales_halftime$y)} months"),
-              caption = glue::glue("Based on a dataset comprising {timespan} months of resale data")
+              caption = glue::glue("Based on a dataset comprising {timespan} months of sale data")
        ) +
        theme(plot.title.position = "plot")
 
-ggsave("graphs/relisting_cdf.png",
+ggsave("graphs/resale_cdf.png",
        width = 6, height = 4,
-       plot = relist
+       plot = resale_graph
 )
