@@ -16,7 +16,7 @@ strip_html <- function(xpath) {
 
 html_doc <- read_html(url)
 
-data_raw <-
+data_listed <-
     tibble(
         address_raw = strip_html(".//div[@data-label='pc-address']"),
         price_raw = strip_html(".//span[@data-label='pc-price']"),
@@ -25,11 +25,28 @@ data_raw <-
         into = c("address", "city", "statezip"),
         sep = ","
     ) %>%
-    separate(statezip, into = c("none", "state", "zipcode"), sep = " ") %>%
+    mutate(across(everything(), str_trim)) %>%
+    separate(statezip, into = c("state", "zipcode"), sep = " ") %>%
     mutate(
         price = as.numeric(str_remove_all(price_raw, "\\$|\\,")),
-        city = str_trim(city),
-        street = str_trim(str_remove_all(address, "(\\d|Ct|St|Rd|Blvd|Dr|Pt)"))
+        street = str_trim(str_remove_all(address, "(\\d{2,8}|Ct|St|Rd|Blvd|Dr|Pt|Ln|Pl)"))
     ) %>%
-    select(-none, -price_raw) %>%
-    semi_join(glnames)
+    select(-price_raw) %>%
+    semi_join(glnames, by = join_by(street)) %>%
+    arrange(desc(price))
+
+price_quants <-
+    data_listed %>%
+    summarize(
+        price_25 = quantile(price, 0.1),
+        price_50 = quantile(price, 0.50),
+        price_75 = quantile(price, 0.9),
+    )
+
+
+ggplot(data_listed, aes(y = fct_reorder(address, price), x = price)) + 
+    geom_col() + 
+    geom_vline(xintercept = price_quants$price_25) + 
+    geom_vline(xintercept = price_quants$price_50) + 
+    geom_vline(xintercept = price_quants$price_75) + 
+    scale_x_continuous(labels = scales::label_dollar())
