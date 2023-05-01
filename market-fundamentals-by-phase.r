@@ -71,7 +71,7 @@ for (ph in phaselist) {
 cleaned_up_final <-
     final %>%
     select(-res_time) %>%
-    pivot_wider(names_from = phase, values_from = homesold) %>%
+    pivot_wider(names_from = phase, values_from = homesold) %>%  unnest(back) %>% unnest(front) %>%
     mutate(total = back + front) %>%
     pivot_longer(back:total, names_to = "phase", values_to = "homesold") %>%
     mutate(phase = factor(phase, levels = c("front", "back", "total")))
