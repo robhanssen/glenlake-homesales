@@ -27,6 +27,7 @@
 214 Bridgeport,2018-03-23,2018-07-03,235900,residential,
 568 Marchbanks,2018-04-11,2018-12-29,210000,residential,
 512 Inner Banks,2018-05-03,2019-08-02,290000,residential,
+615 Marchbanks,2018-05-11,2018-07-13,194400,residential,
 831 Vandenburg,2018-05-25,2019-08-07,223000,residential,
 564 Shoreline,2018-07-10,2018-08-31,212900,residential,
 115 Walkers Bluff,2018-07-22,2019-09-18,365000,residential,
@@ -241,3 +242,4 @@
 805 Nola,2023-04-19,,,residential,1
 533 Marchbanks,2023-05-04,,,residential,
 # 851 Vandenburg,2023-04-01,,,residential,1
+615 Marchbanks,2023-05-17,,,residential,
