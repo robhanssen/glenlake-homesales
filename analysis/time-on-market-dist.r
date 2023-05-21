@@ -1,54 +1,60 @@
 library(tidyverse)
-library(tidyverse)
-library(ggridges)
+theme_set(theme_classic())
 
 load("Rdata/homesales.Rdata")
 
-homesales %>%
-    filter(!is.na(saleyear)) %>%
-    ggplot + 
-    aes(y = factor(saleyear), x = timeonmarket) + 
-    geom_density_ridges() + 
-    geom_boxplot()
+filtered_homesales <-
+    homesales %>%
+    filter(!is.na(saledate)) %>%
+    mutate(timeonmarket = as.numeric(timeonmarket))
 
+time_cdf <-
+    tibble(
+        rng = seq(1, max(filtered_homesales$timeonmarket, na.rm = TRUE), 2),
+        time_cdf = map_dbl(
+            rng,
+            ~ nrow(filtered_homesales %>% filter(timeonmarket <= .x)) /
+                nrow(filtered_homesales)
+        )
+    )
 
-homesales %>%
-    filter(!is.na(saleyear)) %>%
-    ggplot + 
-    aes(x = factor(saleyear), y = timeonmarket) + 
-    geom_jitter(width  = .1) + 
-    geom_violin(alpha = .2) + 
-    geom_violin(data = x, color = "red")
+last10 <-
+    filtered_homesales %>%
+    filter(saleyear == year(today())) %>%
+    select(timeonmarket) %>%
+    mutate(
+        perc = approx(time_cdf$rng, time_cdf$time_cdf, xout = timeonmarket)$y
+    )
 
+perc_markers <-
+    tibble(perc = c(.05, .25, .5, .75, .95)) %>%
+    mutate(
+        timeonmarket = approx(time_cdf$time_cdf, time_cdf$rng, xout = perc)$y
+    )
 
+log10(1:10)
 
-a <- homesales %>% filter(saleyear == 2021) %>% pull(timeonmarket) %>% as.numeric()
+time_cdf_g <-
+    time_cdf %>%
+    ggplot(aes(rng, time_cdf)) +
+    geom_vline(
+        xintercept = perc_markers$timeonmarket[perc_markers$perc == .5],
+        linewidth = 2, alpha = .1, color = "gray10"
+    ) +
+    geom_line(linewidth = 2, alpha = .3, color = "gray20") +
+    scale_y_continuous(labels = scales::percent_format()) +
+    scale_x_log10(
+        limit = c(10, NA),
+        breaks = c(10, 20, 30, 50, 70, 100, 200, 300, 500, 700, 1000)
+    ) +
+    geom_point(data = last10, aes(x = timeonmarket, y = perc), color = "red") +
+    geom_point(
+        data = perc_markers, aes(x = timeonmarket, y = perc),
+        color = "gray30", shape = 3, size = 5
+    ) +
+    labs(x = "Time on market (in days)", y = "Cumulative DensityFunction")
 
-coef(glm(a~1,family=poisson(link="identity")))    
-
-
-homesales %>%
-    filter(!is.na(saleyear)) %>%
-    select(saleyear, timeonmarket) %>%
-    mutate(time = as.numeric(timeonmarket)) %>%
-    group_by(saleyear) %>%
-    nest() %>%
-    mutate(pois = map_dbl(data, ~coef(glm(.x$time~1,family=poisson(link="identity")))))
-
-x <- tibble(saleyear = 2019, timeonmarket  = rpois(100, 138))
-
-ggplot
-
-
-estBetaParams <- function(mu, var) {
-  alpha <- ((1 - mu) / var - 1 / mu) * mu ^ 2
-  beta <- alpha * (1 / mu - 1)
-  return(params = list(alpha = alpha, beta = beta))
-}
-
-a <- homesales %>% filter(saleyear == 2021) %>% pull(timeonmarket) %>% as.numeric()
-
-m <- mean(a)
-s <- var(a)
-
-estBetaParams(m, s)
+ggsave("graphs/time_on_market_cdf.png",
+    height = 4, width = 6,
+    plot = time_cdf_g
+)
