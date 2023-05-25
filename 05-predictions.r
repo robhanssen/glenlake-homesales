@@ -62,7 +62,7 @@ last_sale_day <-
        slice_max(dayofyear, n = 1) %>%
        select(address:amount, dayofyear) %>%
        pull(dayofyear) %>%
-       median(.)
+       median(., na.rm = TRUE)
 
 marketmodels <- function(tbl) {
        lm(marketvalue ~ dayofyear, data = tbl)
@@ -117,7 +117,7 @@ sizes <- c(rep(.25, year_length - 1), 1)
 
 valuebyyear %>%
        ggplot() +
-       aes(x = dayofyear, y = marketvalue, color = factor(saleyear), size = factor(saleyear)) +
+       aes(x = dayofyear, y = marketvalue, color = factor(saleyear), linewidth = factor(saleyear)) +
        geom_line() +
        scale_y_continuous(labels = dollar_format(
               scale = 1e-3,
@@ -132,7 +132,7 @@ valuebyyear %>%
               caption = caption
        ) +
        scale_color_manual(values = colors) +
-       scale_size_manual(values = sizes) +
+       scale_linewidth_manual(values = sizes) +
        geom_line(data = modeldata, aes(y = .fitted), lty = 2) + 
        theme(legend.position = "none")
 
@@ -252,7 +252,7 @@ salesmodeldata <-
 
 salecounter %>%
        ggplot() +
-       aes(x = dayofyear, y = salecount, color = factor(year), size = factor(year)) +
+       aes(x = dayofyear, y = salecount, color = factor(year), linewidth = factor(year)) +
        geom_line() +
        geom_line(data = salesmodeldata, aes(y = .fitted), lty = 2) +
        scale_y_continuous(limit = c(0, NA)) +
@@ -263,7 +263,7 @@ salecounter %>%
               caption = caption
        ) +
        scale_color_manual(values = colors) + 
-       scale_size_manual(values = sizes) +
+       scale_linewidth_manual(values = sizes) +
        theme_light()
 
 ggsave("graphs/dayofyear-sales-pred.png", width = 8, height = 6)
