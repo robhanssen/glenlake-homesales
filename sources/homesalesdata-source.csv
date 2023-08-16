@@ -228,23 +228,23 @@
 139 Dewfield,2022-11-30,2022-12-30,310000,residential,
 286 Bridgeport,2022-07-22,2023-04-17,299000,residential,
 447 Shoreline,2022-08-26,2023-02-17,304900,residential,
-214 Bridgeport,2023-01-19,,,residential,1
-# 733 Ethridge,2023-01-26,,,residential,
+214 Bridgeport,2023-01-19,2023-08-11,393500,residential,
 745 Maya,2023-01-27,2023-03-10,333000,residential,
 830 Culverhouse,2023-02-06,2023-03-31,424900,residential,
 116 Dewfield,2023-02-15,2023-04-03,350000,residential,
 709 Maya,2023-02-28,2023-04-19,310000,residential,
-908 Palmdale,2023-03-01,,,residential,1
-711 Grays Harbor,2023-03-03,,,patio home,1
 270 Bridgeport,2023-03-23,2023-06-01,392500,residential,
 427 Shoreline,2023-04-11,2023-05-09,360000,residential,
-483 Shoreline,2023-04-14,,,residential,
 805 Nola,2023-04-19,2023-06-06,397900,residential,
-# 533 Marchbanks,2023-05-04,,,residential,1
 851 Vandenburg,2023-04-01,2023-05-15,269900,residential,
-615 Marchbanks,2023-05-17,,,residential,
-705 Maya,2023-05-18,2023-07-14,312000,residential,
 211 Stewarts Landing,2023-06-08,2023-07-31,274000,townhome,
+705 Maya,2023-05-18,2023-07-14,312000,residential,
+908 Palmdale,2023-03-01,,,residential,1
+711 Grays Harbor,2023-03-03,,,patio home,1
+483 Shoreline,2023-04-14,,,residential,
+615 Marchbanks,2023-05-17,,,residential,
 407 Pierview,2023-07-01,,,patio home,
 723 Grays Harbor,2023-07-02,,,patio home,
 463 Shoreline,2023-08-03,,,residential,
+# 533 Marchbanks,2023-05-04,,,residential,1
+# 733 Ethridge,2023-01-26,,,residential,
