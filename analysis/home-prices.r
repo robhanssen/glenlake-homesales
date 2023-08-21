@@ -109,7 +109,7 @@ amount2022 <- with(
 )
 
 # 5-color set from ColorBrewers
-colors <- c("#e41a1c", "#377eb8", "#4daf4a", "#984ea3", "#ff7f00")
+colors <- c("#e41a1c", "#377eb8", "#4daf4a", "#984ea3", "#ff7f00", "blue")
 
 chc <- scales::percent(amount2022 / lowest_amount - 1, prefix = "+")
 
