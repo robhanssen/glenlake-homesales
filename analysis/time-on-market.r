@@ -22,7 +22,7 @@ quarter_summary <-
 
 lowest_amount <- with(
     homesales,
-    as.numeric(median(timeonmarket[saleyear == 2017],
+    as.numeric(median(timeonmarket[saleyear == 2018],
         na.rm = TRUE
     )
     )
@@ -31,14 +31,15 @@ lowest_amount <- with(
 quarter_summary %>%
     ggplot() +
     aes(x = date) +
-    geom_col(aes(y = mean_amount), alpha = .5, color = "gray50") +
+    geom_col(aes(y = median_amount), alpha = .5, color = "gray50") +
     geom_ribbon(aes(ymin = min_amount, ymax = max_amount, y = NULL), alpha = .2) +
+    scale_x_date(date_breaks = "1 year", date_label = "%Y") +
     scale_y_continuous(
         labels = scales::number_format(),
         limits = c(0, NA),
         sec.axis = sec_axis(~ . / lowest_amount - 1,
                             labels = scales::percent_format(),
-                            name = "Relative to 2017 mean time on market")
+                            name = "Relative to 2018 median time on market")
     ) +
     labs(
         y = "Time on market (in days)",
