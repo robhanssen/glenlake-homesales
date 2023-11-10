@@ -102,11 +102,11 @@ homesales %>%
               residencetime = data_time_length / turnover
        ) %>%
        mutate(homecount = cut(numberofhomes,
-              breaks = c(0, 10, 20, 100),
+              breaks = c(0, 10, 25, 100),
               labels = c(
                      "10 homes or less per street",
-                     "11-20 homes per street",
-                     "over 20 homes per street"
+                     "11-25 homes per street",
+                     "over 26 homes per street"
               )
        )) -> hometurnover
 
@@ -309,7 +309,8 @@ resale_graph <-
               x = "Resale time (in months)", y = "",
               title = glue::glue(
                      "The expected resale time for homes ",
-                     "is {round(resales_halftime$y)} months"),
+                     "is {round(resales_halftime$y)} months"
+              ),
               caption = glue::glue("Based on a dataset comprising {timespan} months of sale data")
        ) +
        theme(plot.title.position = "plot")
