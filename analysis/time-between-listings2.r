@@ -14,13 +14,13 @@ load("Rdata/homesales.Rdata")
 
 lagsales <-
     homesales %>%
-    arrange(saledate) %>%
+    arrange(listingdate) %>%
     mutate(
-        salediff = saledate - lag(saledate)
+        salediff = listingdate - lag(listingdate)
     ) %>%
-    filter(saleyear > 2017)
+    filter(listingyear > 2017)
 
-lastdiff <- today() - max(homesales$saledate, na.rm = TRUE)
+lastdiff <- today() - max(homesales$listingdate, na.rm = TRUE)
 
 maxdiff <- 10 * (as.numeric(max(c(lagsales$salediff, lastdiff))) %/% 10 + 1)
 
@@ -51,10 +51,10 @@ lastvalue <-
     scales::percent(pexp(as.numeric(lastdiff), rate = broom::tidy(fittedmodel)$estimate), accuracy = 0.01)
 
 title <-
-    glue::glue("A home is sold every {halflife} days in Glen Lake on average (95% CI {q95} days)")
+    glue::glue("A home is listed every {halflife} days in Glen Lake on average (95% CI {q95} days)")
 
 subtitle <-
-    glue::glue("The current time between sales is {lastdiff} days ({lastvalue}ile)")
+    glue::glue("The current time between listings is {lastdiff} days ({lastvalue}ile)")
 
 lag_g <-
     lagsales %>%
@@ -81,7 +81,7 @@ lag_g <-
         labels = scales::label_percent()
     ) +
     labs(
-        x = "Time between home sales (in days)",
+        x = "Time between home listings (in days)",
         y = "",
         title = title,
         subtitle = subtitle,
@@ -94,7 +94,7 @@ lag_g <-
     )
 
 ggsave(
-    "graphs/time_between_sales_dist.png",
+    "graphs/time_between_listings_dist.png",
     width = 8, height = 5,
     plot = lag_g
 )
@@ -106,14 +106,14 @@ ggsave(
 determine_cdf <- function(dat) {
     cdf <- ecdf(dat$salediff)
     tibble(
-        x = 0:100,
+        x = 0:maxdiff,
         y = cdf(x)
     )
 }
 
 lagsales %>%
     filter(!is.na(salediff)) %>%
-    nest(data = !saleyear) %>%
+    nest(data = !listingyear) %>%
     mutate(
         cdf = map(data, ~ determine_cdf(.x)),
         mod = map(cdf, ~ nls(y ~ pexp(x, rate = lambda), start = list(lambda = .1), data = .x)),
@@ -130,27 +130,28 @@ lagsales %>%
     ) %>%
     select(-data, -cdf, -mod, -statistic, -term) %>%
     ggplot(
-        aes(x = saleyear, y = q50)
+        aes(x = listingyear, y = q50)
     ) +
     geom_point() +
     geom_point(aes(y = time), shape = 3) +
     geom_errorbar(
-        aes(ymax = q95, ymin = q05, x = saleyear),
+        aes(ymax = q95, ymin = q05, x = listingyear),
         width = .2
     ) +
     # geom_segment(aes(y = 0, xend = saleyear, yend = time)) +
     scale_y_continuous(
         limits = c(0, NA)
-    ) + 
+    ) +
     labs(
         x = "Year",
         y = "Modeled time between events (in days)",
         caption = "Higher is better"
-    ) + coord_flip()
+    ) +
+    coord_flip()
 
 lagsales %>%
     filter(!is.na(salediff)) %>%
-    nest(data = !saleyear) %>%
+    nest(data = !listingyear) %>%
     mutate(
         cdf = map(data, ~ determine_cdf(.x)),
         mod = map(cdf, ~ nls(y ~ pexp(x, rate = lambda), start = list(lambda = .1), data = .x)),
@@ -158,7 +159,7 @@ lagsales %>%
         preddate = map(mod, broom::augment)
     ) %>%
     unnest(preddate) %>%
-    ggplot(aes(x, .fitted, color = factor(saleyear))) +
+    ggplot(aes(x, .fitted, color = factor(listingyear))) +
     geom_line(show.legend = FALSE) +
     geom_line(
         data = fitted,
@@ -166,13 +167,13 @@ lagsales %>%
         inherit.aes = FALSE,
         linetype = 2
     ) +
-    facet_wrap(vars(saleyear)) +
+    facet_wrap(vars(listingyear)) +
     scale_y_continuous(
         labels = scales::label_percent(),
         breaks = seq(0, 1, .2)
     ) +
     labs(
-        x = "Time between events (in days)",
+        x = "Time between listings (in days)",
         y = "Cumulative Distribution",
         color = "Year",
         caption = "Dotted line is long-term average"
