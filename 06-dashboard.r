@@ -8,15 +8,15 @@ load("Rdata/homesales.Rdata")
 
 alpha <- .8
 
-homesales <-
-    homesales %>%
-    mutate(
-        listingyear = factor(listingyear),
-        saleyear = factor(saleyear)
-    )
+# homesales <-
+#     homesales %>%
+#     mutate(
+#         listingyear = factor(listingyear),
+#         saleyear = factor(saleyear)
+#     )
 
 max_date <- max(c(homesales$listingdate, homesales$saledate), na.rm = TRUE)
-max_year <- factor(year(max_date))
+max_year <- year(max_date)
 max_date <- format(max_date, format = "%b %d, %Y")
 
 num_years <- homesales %>%
@@ -31,7 +31,7 @@ homeslisted <-
     group_by(listingyear) %>%
     summarize(count = n()) %>%
     ggplot() +
-    aes(x = listingyear, y = count, fill = listingyear) +
+    aes(x = listingyear, y = count, fill = factor(listingyear)) +
     geom_col(alpha = alpha) +
     labs(
         x = "Year",
@@ -48,7 +48,7 @@ homessold <-
     group_by(saleyear) %>%
     summarize(count = n()) %>%
     ggplot() +
-    aes(x = saleyear, y = count, fill = saleyear) +
+    aes(x = saleyear, y = count, fill = factor(saleyear)) +
     geom_col(alpha = alpha) +
     labs(
         x = "Year",
@@ -66,7 +66,7 @@ timeonmarket <-
     group_by(listingyear) %>%
     summarize(timeonmarket = median(timeonmarket)) %>%
     ggplot() +
-    aes(x = listingyear, y = timeonmarket, fill = listingyear) +
+    aes(x = listingyear, y = timeonmarket, fill = factor(listingyear)) +
     geom_col(alpha = alpha) +
     labs(
         x = "Year",
@@ -85,7 +85,7 @@ saleprice <-
             salemin = min(amount, na.rm = TRUE)
             ) %>%
     ggplot() +
-    aes(x = saleyear, y = saleprice, fill = saleyear) +
+    aes(x = saleyear, y = saleprice, fill = factor(saleyear)) +
     geom_col(alpha = alpha) +
     geom_segment(aes(xend = saleyear, y = salemin, yend = salemax), size = 1, color = "gray50", alpha = 1) +
     geom_point(aes(y = salemin), size = 3, color = "gray50", alpha = .7) +
@@ -141,7 +141,7 @@ marketvalue <-
     group_by(saleyear) %>%
     summarize(marketvalue = sum(amount, na.rm = TRUE)) %>%
     ggplot() +
-    aes(x = saleyear, y = marketvalue, fill = saleyear) +
+    aes(x = saleyear, y = marketvalue, fill = factor(saleyear)) +
     geom_col(alpha = alpha) +
     scale_y_continuous(
         breaks = 4e6 * 0:20,
@@ -163,7 +163,7 @@ turnover <-
     count() %>%
     mutate(turnover = n / 482) %>%
     ggplot() +
-    aes(x = saleyear, y = turnover, fill = saleyear) +
+    aes(x = saleyear, y = turnover, fill = factor(saleyear)) +
     geom_col(alpha = alpha) +
     scale_y_continuous(
         breaks = 0.02 * 0:10,
