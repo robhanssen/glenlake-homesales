@@ -80,10 +80,11 @@ saleprice <-
     homesales %>%
     filter(!is.na(saleyear)) %>%
     group_by(saleyear) %>%
-    summarize(saleprice = median(amount, na.rm = TRUE),
-            salemax = max(amount, na.rm = TRUE),
-            salemin = min(amount, na.rm = TRUE)
-            ) %>%
+    summarize(
+        saleprice = median(amount, na.rm = TRUE),
+        salemax = max(amount, na.rm = TRUE),
+        salemin = min(amount, na.rm = TRUE)
+    ) %>%
     ggplot() +
     aes(x = saleyear, y = saleprice, fill = factor(saleyear)) +
     geom_col(alpha = alpha) +
@@ -178,6 +179,9 @@ turnover <-
     annotate("text", x = max_year, y = .01, label = "YTD") +
     theme(legend.position = "none")
 
-overview <- (marketvalue + averageinventorytime + homessold) / (homeslisted + timeonmarket + averageinventorysize) / (turnover + saleprice)
+overview <-
+    (marketvalue + averageinventorytime + homessold) /
+    (homeslisted + timeonmarket + averageinventorysize) /
+    (turnover + saleprice)
 
 ggsave("dashboard.png", width = 12, plot = overview)

@@ -54,8 +54,9 @@ listed_last_year_by_month %>%
     ggplot() +
     aes(date, homeslisted) +
     geom_line() +
-    geom_line(data = sold_last_year_by_month %>% filter(date >= first(datelist) + years(1)),
-                aes(y = homesold), color = "red") +
+    geom_line(
+        data = sold_last_year_by_month %>% filter(date >= first(datelist) + years(1)),
+        aes(y = homesold), color = "red") +
     scale_x_date() +
     scale_y_continuous(limits = c(0, NA), breaks = 10 * 0:100) +
     labs(

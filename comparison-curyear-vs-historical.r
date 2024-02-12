@@ -50,8 +50,10 @@ salesprice_g <-
         ),
         width = .3
     ) +
-    scale_y_continuous(labels = scales::label_dollar(),
-            sec.axis = sec_axis(~ . / mean_curyear - 1, labels = scales::percent_format())) +
+    scale_y_continuous(
+        labels = scales::label_dollar(),
+        sec.axis = sec_axis(~ . / mean_curyear - 1, labels = scales::percent_format())
+    ) +
     geom_text(aes(
         x = year, y = mean_curyear + conf.high + 1e4,
         label = scales::pvalue(p.value)
