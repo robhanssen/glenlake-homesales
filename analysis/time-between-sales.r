@@ -28,14 +28,14 @@ e <- ecdf(lagsales$salediff)
 
 cddata <- tibble(
     x = seq(0, maxdiff, 1),
-    y = e(x),
-    t = y / max(y, na.rm = TRUE)
+    t = e(x),
+    # t = y / max(y, na.rm = TRUE)
 )
 
 fittedmodel <-
-    nls(t ~ 1 - exp(-lamda * x),
-        start = list(lamda = 1),
-        data = cddata
+    nls(t ~ pexp(x, lamda),
+        start = list(lamda = .1),
+        data = cddata %>% filter(x > 0, t < 1)
     )
 
 fitted <-
