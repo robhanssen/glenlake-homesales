@@ -22,7 +22,8 @@ amount_thisyear <- with(
 )
 
 # 5-color set from ColorBrewers
-colors <- c("#e41a1c", "#377eb8", "#4daf4a", "#984ea3", "#ff7f00", "darkgreen")
+# this will eventually fail when there are more than 12 years in the dataset (~2029 or so)
+colors <- RColorBrewer::brewer.pal(12, "Paired")
 
 chc <- scales::percent(amount_thisyear / lowest_amount - 1, prefix = "+")
 
