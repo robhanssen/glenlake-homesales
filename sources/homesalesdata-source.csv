@@ -248,7 +248,7 @@
 723 Grays Harbor,2023-07-02,2024-02-24,371900,patio home,
 812 Culverhouse,2024-01-26,2024-03-14,480000,residential,
 615 Marchbanks,2023-05-17,2024-03-22,319900,residential,
-733 Ethridge,2023-10-25,,,residential,
+# 733 Ethridge,2023-10-25,,,residential,removed
 286 Bridgeport,2024-01-30,,,residential,
 407 Pierview,2024-02-06,,,patio home,1
 228 Stewarts Landing,2024-03-14,,,townhome,1
@@ -257,5 +257,6 @@
 804 Nola,2024-04-04,,,residential,1
 216 Stewarts Landing,2024-04-08,,,townhome,1
 104 Dewfield,2024-04-09,,,residential,1
-721 Maya,2024-04-10,,,residential,
+721 Maya,2024-04-10,,,residential,1
 226 Stewarts Landing,2024-04-26,,,townhome,
+733 Ethridge,2024-05-10,,,residential,
