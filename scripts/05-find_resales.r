@@ -40,7 +40,7 @@ resales %>%
     scale_x_continuous(breaks = 12 * 1:10) +
     theme(legend.position = c(.8, .8))
 
-ggsave("graphs/turnover-time.png", width = 8, height = 6)
+ggsave("graphs/turnover-time.png", width = 6, height = 10)
 
 resales %>%
     group_by(address) %>%
