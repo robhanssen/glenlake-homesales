@@ -150,10 +150,18 @@ inv_cdf <-
     )
 
 mid_point <-
-    tibble(y = c(.1, .5, .9, .99)) %>%
+    tibble(y = pnorm(-2:2)) %>%
     mutate(x = map(
         y,
         ~ approx(inv_cdf$cdf, inv_cdf$inv, .x)$y
+    )) %>%
+    unnest(x)
+
+last_point <-
+    tibble(y = last(inventorycalc$inventory)) %>%
+    mutate(x = map(
+        y,
+        ~ approx(inv_cdf$inv, inv_cdf$cdf, .x)$y
     )) %>%
     unnest(x)
 
@@ -172,7 +180,7 @@ inv_cdf_graph <-
     ) +
     scale_y_continuous(
         limits = c(0, 1),
-        breaks = c(0, seq(.1, .9, .2), 1),
+        breaks = seq(0, 1, .2),
         labels = scales::label_percent()
     ) +
     scale_x_continuous(breaks = seq(0, maxventory, 5)) +
@@ -181,6 +189,19 @@ inv_cdf_graph <-
         title = "Cumulative density function of homes in inventory at any given moment",
         caption = "Based on sales from 2018 and later"
     ) +
+    geom_point(
+        data = last_point,
+        aes(y, x), 
+        color = "red",
+        inherit.aes = FALSE, 
+        size = 2
+    ) +
+    # geom_hline(
+    #     yintercept = pnorm(-2:2),
+    #     linetype = 2,
+    #     color = "gray70",
+    #     linewidth = .5
+    # ) +
     theme(
         panel.grid.minor = element_blank(),
         plot.caption.position = "plot",
