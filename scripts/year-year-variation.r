@@ -147,9 +147,68 @@ sales_g <-
     )
 
 
-p <- listings_g + sales_g & theme(axis.title.x = element_blank())
+
+cu_market <-
+    homesales %>%
+    filter(!is.na(saledate), !is.na(amount)) %>%
+    arrange(saledate) %>%
+    group_by(saleyear) %>%
+    mutate(
+        # y = 1,
+        cu_market = cumsum(amount),
+    ) %>%
+    ungroup() %>%
+    select(saledate, cu_market) %>%
+    full_join(full_date_range, by = c("saledate" = "date")) %>%
+    arrange(saledate, cu_market) %>%
+    mutate(
+        date = normal_date(saledate),
+        cu_market = case_when(
+            str_detect(date, "-01-01") & is.na(cu_market) ~ 0,
+            TRUE ~ cu_market
+        )
+    ) %>%
+    fill(cu_market, .direction = "down") %>%
+    filter(!str_detect(date, "-02-29"))
+
+market_g <-
+    cu_market %>%
+    filter(year(saledate) != year(today())) %>%
+    summarize(
+        min = min(cu_market),
+        max = max(cu_market),
+        med = median(cu_market),
+        .by = date
+    ) %>%
+    ggplot(aes(x = date)) +
+    geom_step(aes(y = min), color = "tan") +
+    geom_step(aes(y = max), color = "tan") +
+    geom_step(aes(y = med), color = "tan", linetype = 3) +
+    geom_step(
+        data = cu_market %>%
+            filter(
+                year(saledate) == year(today()),
+                date <= today()
+            ),
+        aes(x = date, y = cu_market),
+        color = "darkgreen"
+    ) +
+    labs(
+        x = "Date", y = "Minimum and maximum cumulative sales",
+        title = "Market size comparison"
+    ) +
+    scale_x_date(
+        date_labels = "%b"
+    ) +
+    scale_y_continuous(
+        labels = scales::label_dollar(scale = 1e-6, suffix = " M"),
+        limits = c(0, NA)
+    )
+
+
+p <- listings_g + sales_g + market_g & theme(axis.title.x = element_blank())
 
 ggsave("graphs/listing_sales_comparison.png",
-    width = 10, height = 5,
+    width = 14, height = 5,
     plot = p
 )
