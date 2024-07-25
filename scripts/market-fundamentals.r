@@ -66,7 +66,8 @@ listed_last_year_by_month %>%
         caption = paste0(caption_source, "\nBlack line: listings; Red line: sales")
     )
 
-ggsave("graphs/average-homesales-per-12-months.png")
+ggsave("graphs/average-homesales-per-12-months.png",
+    width = 6, height = 6)
 
 
 current_market_size <-
