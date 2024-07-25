@@ -184,4 +184,4 @@ overview <-
     (homeslisted + timeonmarket + averageinventorysize) /
     (turnover + saleprice)
 
-ggsave("dashboard.png", width = 12, plot = overview)
+ggsave("dashboard.png", width = 12, height = 6, plot = overview)
