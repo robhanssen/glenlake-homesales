@@ -2,7 +2,13 @@ library(tidyverse)
 library(survival)
 
 theme_set(
-    theme_light()
+    theme_light() +
+        theme(
+            plot.title.position = "plot",
+            plot.caption.position = "plot",
+            plot.caption = element_text(hjust = 0),
+            panel.grid.minor = element_blank()
+        )
 )
 
 load("Rdata/homesales.Rdata")
@@ -19,7 +25,7 @@ multisale <-
     ) %>%
     drop_na(timebetweensales) %>%
     select(address, ends_with("date"), timebetweensales, censor) %>%
-    ungroup() 
+    ungroup()
 
 multisale_last <-
     multisale %>%
@@ -27,8 +33,8 @@ multisale_last <-
     mutate(
         timebetweensales = today() - saledate,
         censor = 0
-        ) %>%
-        drop_na(timebetweensales)
+    ) %>%
+    drop_na(timebetweensales)
 
 onesale <-
     homesales %>%
@@ -58,21 +64,33 @@ t <- predict(wb,
 
 surv_wb <-
     data.frame(
-        time = ddays(t)/dyears(1),
+        time = ddays(t) / dyears(1),
         surv = surv,
         upper = NA,
         lower = NA,
         std.err = NA
     )
 
+surv_time <- approx(surv_wb$surv, surv_wb$time, xout = exp(-1))$y
+
 surv_wb %>%
     ggplot(
         aes(time, surv)
     ) +
-    geom_line(linetype = 2) + 
+    geom_line(linetype = 1) +
+    geom_hline(yintercept = exp(-1), linetype = "dotted") +
+    geom_vline(xintercept = surv_time, linetype = "dotted") +
     labs(
-        x = "Time living in a home",
+        title = "Survival analysis based on homesales starting 2017",
+        x = "Time living in a home (in years)",
         y = "Chance of still living in that home",
         caption = "Sales data limited, starting from Jan 2017"
+    ) +
+    scale_y_continuous(
+        limits = c(0, 1),
+        labels = scales::label_percent()
+    ) +
+    annotate(geom = "text", hjust = 0,
+        x = surv_time + .5, y = .035,
+        label = glue::glue("Average time:\n{round(surv_time, 1)} years")
     )
-
