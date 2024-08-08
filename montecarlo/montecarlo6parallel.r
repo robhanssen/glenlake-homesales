@@ -6,7 +6,7 @@ theme_set(theme_light())
 
 load("Rdata/homesales.Rdata")
 
-period_list <- c(78, 120, 180, 360, 720)
+period_list <- c(90, 120, 180, 360, 720)
 
 # estimator of time between sales and listings modeled as exponential distribution
 time_estimator <- function(dat, var, period, lambda = .1) {
@@ -64,8 +64,8 @@ simul_sale <- function(dat, period, niter = 1000) {
     last_sale <- max(dat$saledate, na.rm = TRUE)
 
     simul_sale_values <- map_dbl(seq_len(niter), \(n) {
-        list_simul <- floor(rexp(365, rate = list_time_est))
-        sale_simul <- floor(rexp(365, rate = sale_time_est))
+        list_simul <- round(rexp(365, rate = list_time_est))
+        sale_simul <- round(rexp(365, rate = sale_time_est))
         price_simul <- exp(rnorm(365, mean = price_est["mean0"], sd = price_est["sd0"]))
 
         next_listings <- last_list + cumsum(list_simul)
@@ -90,9 +90,17 @@ multip <- map_df(period_list, \(p) {
     )
 })
 
+current_sales <- sum(homesales$amount[year(homesales$saledate) == year(today())], na.rm = TRUE)
+
 ggplot(multip) +
     aes(x = price, y = factor(period), fill = factor(period)) +
     geom_density_ridges(alpha = .2) +
+    geom_vline(
+        xintercept = current_sales,
+        linewidth = 2,
+        alpha = .2,
+        color = "gray50"
+    ) +
     scale_x_continuous(
         labels = scales::dollar_format(scale = 1e-6, suffix = " M"),
         breaks = 1e6 * 0:20
