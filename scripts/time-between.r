@@ -45,7 +45,7 @@ time_between <- function(dat, var, labels) {
         fittedmodel %>% broom::augment()
 
     halflife <-
-        round(qexp(.5, rate = broom::tidy(fittedmodel)$estimate))
+        round(qexp(1 - exp(-1), rate = broom::tidy(fittedmodel)$estimate))
 
     q95 <-
         round(qexp(.95, rate = broom::tidy(fittedmodel)$estimate))
