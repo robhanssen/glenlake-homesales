@@ -133,4 +133,7 @@ num_g <-
     theme(legend.position = "none")
 
 
-ggsave("montecarlo/mc-par7.png", plot = dist_g + num_g)
+ggsave("montecarlo/mc-par7.png",
+    plot = num_g + dist_g,
+    width = 10, height = 6
+)
