@@ -103,16 +103,18 @@ price_actual <- function(dat, period, mean0 = 12.7, sd0 = .2) {
 
 
 
-period_list <- seq(100, 2500, 300)
+# period_list <- seq(100, 2500, 300)
+period_list <- 365 * 1:8
 
-map_df(period_list, \(p) {
-    actual <- time_diff(homesales, saledate, p)
+time_fit_g <-
+    map_df(period_list, \(p) {
+        actual <- time_diff(homesales, saledate, p)
 
-    mod <- time_estimator(homesales, saledate, p) %>%
-        broom::augment()
+        mod <- time_estimator(homesales, saledate, p) %>%
+            broom::augment()
 
-    inner_join(actual, mod) %>% mutate(period = p)
-}) %>%
+        inner_join(actual, mod) %>% mutate(period = p)
+    }) %>%
     mutate(
         period = factor(period, ordered = TRUE, labels = paste(period_list, "days"))
     ) %>%
@@ -158,15 +160,15 @@ map_df(period_list, \(p) {
 
 
 
+price_fit_g <-
+    map_df(period_list, \(p) {
+        actual <- price_actual(homesales, p)
 
-map_df(period_list, \(p) {
-    actual <- price_actual(homesales, p)
+        mod <- price_estimator(homesales, p) %>%
+            broom::augment()
 
-    mod <- price_estimator(homesales, p) %>%
-        broom::augment()
-
-    inner_join(actual, mod) %>% mutate(period = p)
-}) %>%
+        inner_join(actual, mod) %>% mutate(period = p)
+    }) %>%
     mutate(
         period = factor(period, ordered = TRUE, labels = paste(period_list, "days"))
     ) %>%
@@ -180,7 +182,7 @@ map_df(period_list, \(p) {
         y = "CDF",
         title = "Fitting lognormal distributions on home prices",
         subtitle = "For different time intervals ending today"
-    ) + 
+    ) +
     scale_x_continuous(
         labels = scales::label_currency(scale = 1e-3, prefix = "$ "),
         breaks = scales::pretty_breaks()
@@ -217,6 +219,10 @@ map_df(period_list, \(p) {
         title = "Fitting lognormal distributions on the home prices",
         subtitle = "For different time intervals ending today"
     )
+
+ggsave("graphs/time_price_fit.png", plot = time_fit_g + price_fit_g,
+    width = 10, height = 6)
+
 
 price_actual(homesales, 4500) %>%
     mutate(x = exp(t)) %>%
