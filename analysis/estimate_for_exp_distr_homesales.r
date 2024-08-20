@@ -1,7 +1,17 @@
 library(tidyverse)
 library(ggridges)
 library(patchwork)
-theme_set(theme_light())
+
+theme_set(
+    theme_light() +
+        theme(
+            plot.title.position = "plot",
+            plot.caption.position = "plot",
+            plot.caption = element_text(hjust = 0),
+            legend.position = "none",
+            panel.grid.minor = element_blank()
+        )
+)
 
 
 load("Rdata/homesales.Rdata")
@@ -93,25 +103,33 @@ price_actual <- function(dat, period, mean0 = 12.7, sd0 = .2) {
 
 
 
-period_list <- seq(100, 2500, 300)
+# period_list <- seq(100, 2500, 300)
+period_list <- 365 * 1:8
 
-map_df(period_list, \(p) {
-    actual <- time_diff(homesales, saledate, p)
+time_fit_g <-
+    map_df(period_list, \(p) {
+        actual <- time_diff(homesales, saledate, p)
 
-    mod <- time_estimator(homesales, saledate, p) %>%
-        broom::augment()
+        mod <- time_estimator(homesales, saledate, p) %>%
+            broom::augment()
 
-    inner_join(actual, mod) %>% mutate(period = p)
-}) %>%
+        inner_join(actual, mod) %>% mutate(period = p)
+    }) %>%
+    mutate(
+        period = factor(period, ordered = TRUE, labels = paste(period_list, "days"))
+    ) %>%
     ggplot(
-        aes(x = t, color = factor(period))
+        aes(x = t, color = period)
     ) +
-    geom_point(aes(y = e)) +
+    geom_point(aes(y = e), shape = 1) +
     geom_line(aes(y = .fitted)) +
     labs(
         x = "Day between sales",
-        y = "CDF"
-    )
+        y = "CDF",
+        title = "Fitting exponential distributions on the time between sales",
+        subtitle = "For different time intervals ending today"
+    ) +
+    facet_wrap(vars(factor(period)))
 
 map_df(period_list, \(p) {
     mod <- time_estimator(homesales, saledate, p) %>%
@@ -133,7 +151,7 @@ map_df(period_list, \(p) {
     ) +
     scale_x_continuous(
         limits = c(0, NA)
-    ) + 
+    ) +
     labs(
         x = "Average time (in days) between homesales",
         y = "Period over which is averaged (in days ago)"
@@ -142,24 +160,34 @@ map_df(period_list, \(p) {
 
 
 
+price_fit_g <-
+    map_df(period_list, \(p) {
+        actual <- price_actual(homesales, p)
 
-map_df(period_list, \(p) {
-    actual <- price_actual(homesales,  p)
+        mod <- price_estimator(homesales, p) %>%
+            broom::augment()
 
-    mod <- price_estimator(homesales,  p) %>%
-        broom::augment()
-
-    inner_join(actual, mod) %>% mutate(period = p)
-}) %>%
+        inner_join(actual, mod) %>% mutate(period = p)
+    }) %>%
+    mutate(
+        period = factor(period, ordered = TRUE, labels = paste(period_list, "days"))
+    ) %>%
     ggplot(
         aes(x = exp(t), color = factor(period))
     ) +
     geom_point(aes(y = e)) +
     geom_line(aes(y = .fitted)) +
     labs(
-        x = "Day between sales",
-        y = "CDF"
-    )
+        x = "Home prices (in 1000's US$)",
+        y = "CDF",
+        title = "Fitting lognormal distributions on home prices",
+        subtitle = "For different time intervals ending today"
+    ) +
+    scale_x_continuous(
+        labels = scales::label_currency(scale = 1e-3, prefix = "$ "),
+        breaks = scales::pretty_breaks()
+    ) +
+    facet_wrap(vars(period))
 
 
 map_df(period_list, \(p) {
@@ -184,21 +212,26 @@ map_df(period_list, \(p) {
     scale_x_continuous(
         # limits = c(0, NA)
         labels = scales::label_dollar()
-    ) + 
+    ) +
     labs(
         x = "Average sale price (in USD)",
-        y = "Period over which is averaged (in days ago)"
+        y = "Period over which is averaged (in days ago)",
+        title = "Fitting lognormal distributions on the home prices",
+        subtitle = "For different time intervals ending today"
     )
+
+ggsave("graphs/time_price_fit.png", plot = time_fit_g + price_fit_g,
+    width = 10, height = 6)
+
 
 price_actual(homesales, 4500) %>%
     mutate(x = exp(t)) %>%
-    ggplot(aes(x, e)) + 
+    ggplot(aes(x, e)) +
     geom_point()
 
 price_estimator(homesales, 4500) %>%
     broom::augment() %>%
     mutate(x = exp(t)) %>%
-        ggplot(aes(x, .fitted)) + 
+    ggplot(aes(x, .fitted)) +
     geom_line() +
     geom_point(aes(y = e))
-
