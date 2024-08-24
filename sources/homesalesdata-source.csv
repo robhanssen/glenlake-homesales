@@ -260,7 +260,7 @@
 127 Dewfield,2024-05-18,2024-07-23,320000,residential,
 603 Delaney,2024-06-21,2024-07-25,530150,residential,
 286 Bridgeport,2024-01-30,,,residential,
-226 Stewarts Landing,2024-04-26,,,townhome,
+226 Stewarts Landing,2024-04-26,,,townhome,1
 133 Bridgeville,2024-05-17,,,residential,
 741 Ethridge,2024-05-22,,,residential,
 455 Shoreline,2024-05-24,,,residential,
@@ -271,3 +271,4 @@
 867 Vandenburg,2024-08-06,,,residential,
 205 Stewarts Landing,2024-08-07,,,townhome,
 762 Maya,2024-08-19,,,residential,
+238 Stewarts Landing,2024-08-24,,,townhomes,
