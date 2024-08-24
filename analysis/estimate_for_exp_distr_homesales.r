@@ -101,10 +101,8 @@ price_actual <- function(dat, period, mean0 = 12.7, sd0 = .2) {
     est_tibble
 }
 
-
-
 # period_list <- seq(100, 2500, 300)
-period_list <- 365 * 1:8
+period_list <- c(180, 365 * 1:8)
 
 time_fit_g <-
     map_df(period_list, \(p) {
@@ -113,7 +111,8 @@ time_fit_g <-
         mod <- time_estimator(homesales, saledate, p) %>%
             broom::augment()
 
-        inner_join(actual, mod) %>% mutate(period = p)
+        inner_join(actual, mod, by = join_by(t, e)) %>%
+        mutate(period = p)
     }) %>%
     mutate(
         period = factor(period, ordered = TRUE, labels = paste(period_list, "days"))
@@ -121,7 +120,7 @@ time_fit_g <-
     ggplot(
         aes(x = t, color = period)
     ) +
-    geom_point(aes(y = e), shape = 1) +
+    geom_point(aes(y = e), , shape = 1, size = .5, alpha = .5) +
     geom_line(aes(y = .fitted)) +
     labs(
         x = "Day between sales",
@@ -131,6 +130,43 @@ time_fit_g <-
     ) +
     facet_wrap(vars(factor(period)))
 
+price_fit_g <-
+    map_df(period_list, \(p) {
+        actual <- price_actual(homesales, p)
+
+        mod <- price_estimator(homesales, p) %>%
+            broom::augment()
+
+        inner_join(actual, mod, by = join_by(t, e)) %>% 
+        mutate(period = p)
+    }) %>%
+    mutate(
+        period = factor(period, ordered = TRUE, labels = paste(period_list, "days"))
+    ) %>%
+    ggplot(
+        aes(x = exp(t), color = factor(period))
+    ) +
+    geom_point(aes(y = e), shape = 1, size = .5, alpha = .5) +
+    geom_line(aes(y = .fitted)) +
+    labs(
+        x = "Home prices (in 1000's US$)",
+        y = "CDF",
+        title = "Fitting lognormal distributions on home prices",
+        subtitle = "For different time intervals ending today"
+    ) +
+    scale_x_continuous(
+        labels = scales::label_currency(scale = 1e-3, prefix = ""),
+        breaks = scales::pretty_breaks()
+    ) +
+    facet_wrap(vars(period))
+
+
+
+ggsave("graphs/time_price_fit.png", plot = time_fit_g + price_fit_g,
+    width = 10, height = 6)
+
+
+average_time_g <-
 map_df(period_list, \(p) {
     mod <- time_estimator(homesales, saledate, p) %>%
         broom::tidy() %>%
@@ -144,7 +180,7 @@ map_df(period_list, \(p) {
     ggplot(
         aes(x = time, y = factor(period))
     ) +
-    geom_point() +
+    geom_point(, shape = 1, size = .5, alpha = .5) +
     geom_errorbar(
         aes(x = time, xmin = time_low, xmax = time_hi),
         width = .25
@@ -154,43 +190,13 @@ map_df(period_list, \(p) {
     ) +
     labs(
         x = "Average time (in days) between homesales",
-        y = "Period over which is averaged (in days ago)"
+        y = "Period over which is averaged (in days ago)",
+        title = "Fitting expoential distributions on the time between sales",
+        subtitle = "For different time intervals ending today"
     )
 
-
-
-
-price_fit_g <-
+average_price_g <-
     map_df(period_list, \(p) {
-        actual <- price_actual(homesales, p)
-
-        mod <- price_estimator(homesales, p) %>%
-            broom::augment()
-
-        inner_join(actual, mod) %>% mutate(period = p)
-    }) %>%
-    mutate(
-        period = factor(period, ordered = TRUE, labels = paste(period_list, "days"))
-    ) %>%
-    ggplot(
-        aes(x = exp(t), color = factor(period))
-    ) +
-    geom_point(aes(y = e)) +
-    geom_line(aes(y = .fitted)) +
-    labs(
-        x = "Home prices (in 1000's US$)",
-        y = "CDF",
-        title = "Fitting lognormal distributions on home prices",
-        subtitle = "For different time intervals ending today"
-    ) +
-    scale_x_continuous(
-        labels = scales::label_currency(scale = 1e-3, prefix = "$ "),
-        breaks = scales::pretty_breaks()
-    ) +
-    facet_wrap(vars(period))
-
-
-map_df(period_list, \(p) {
     mod <- price_estimator(homesales, p) %>%
         broom::tidy() %>%
         mutate(period = p) %>%
@@ -220,18 +226,5 @@ map_df(period_list, \(p) {
         subtitle = "For different time intervals ending today"
     )
 
-ggsave("graphs/time_price_fit.png", plot = time_fit_g + price_fit_g,
+ggsave("graphs/time_price_fit_average.png", plot = average_time_g + average_price_g,
     width = 10, height = 6)
-
-
-price_actual(homesales, 4500) %>%
-    mutate(x = exp(t)) %>%
-    ggplot(aes(x, e)) +
-    geom_point()
-
-price_estimator(homesales, 4500) %>%
-    broom::augment() %>%
-    mutate(x = exp(t)) %>%
-    ggplot(aes(x, .fitted)) +
-    geom_line() +
-    geom_point(aes(y = e))
