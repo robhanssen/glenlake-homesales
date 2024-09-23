@@ -40,6 +40,32 @@ price_estimator <- function(dat, saleyear, mean0 = 12.3, sd0 = .2) {
     mod
 }
 
+time_estimator <- function(dat, saleyear, lambda = .1) {
+    dat_adj <- dat %>%
+        # filter(saleyear == saleyear) %>%
+        arrange(saledate) %>%
+        pull(saledate)
+    diffs <- as.numeric(diff(dat_adj))
+
+    e_cdf <- ecdf(diffs)
+    est_tibble <- tibble(
+        t = seq(0, max(diffs), 1),
+        e = e_cdf(t)
+    )
+
+    mod <- nls(
+        e ~ pexp(t, lambda0),
+        start = list(lambda0 = lambda),
+        data = est_tibble
+    )
+
+    # coefficients(mod)
+    mod
+}
+
+
+
+
 dist_g <-
     homesales %>%
     nest(data = !saleyear) %>%
@@ -85,7 +111,52 @@ mean_price_g <-
         y = "Average sale price"
     )
 
-ggsave("graphs/mean_price_by_year_lognormal.png",
-    width = 10, height = 5,
-    plot = dist_g + mean_price_g
+time_dist_g <-
+    homesales %>%
+    nest(data = !saleyear) %>%
+    drop_na() %>%
+    mutate(fit_amount = map(data, time_estimator)) %>%
+    mutate(outmodel = map(fit_amount, broom::augment)) %>%
+    unnest(outmodel) %>%
+    ggplot(aes(x = t, y = .fitted, color = factor(saleyear))) +
+    geom_line() +
+    geom_point(aes(y = e), shape = 1) +
+    scale_x_continuous(
+        # breaks = 1e3 * seq(100, 1000, 100),
+        # labels = scales::label_dollar(scale = 1e-3, suffix = "K")
+    ) +
+    scale_y_continuous(labels = scales::label_percent()) +
+    facet_wrap(vars(saleyear), scale = "free_x") +
+    labs(
+        x = "", y = ""
+    )
+
+mean_time_g <-
+    homesales %>%
+    nest(data = !saleyear) %>%
+    drop_na() %>%
+    mutate(fit_amount = map(data, time_estimator)) %>%
+    mutate(outmodel = map(fit_amount, broom::tidy)) %>%
+    unnest(outmodel) %>%
+    filter(term == "lambda0") %>%
+    mutate(
+        e_high = estimate + 1.96 * std.error,
+        e_low = estimate - 1.96 * std.error,
+        e_mid = estimate,
+        across(starts_with("e_"), ~ 1 / .x)
+    ) %>%
+    ggplot(
+        aes(y = e_mid, x = factor(saleyear))
+    ) +
+    geom_point() +
+    geom_errorbar(aes(ymin = e_low, ymax = e_high), width = .2) +
+    scale_y_continuous(labels = scales::label_number(), limits = c(0, NA)) +
+    labs(
+        x = "Year of sale",
+        y = "Mean days between sales"
+    )
+
+ggsave("graphs/mean_by_year_dist.png",
+    width = 14, height = 10,
+    plot = (dist_g + mean_price_g) / (time_dist_g + mean_time_g)
 )
