@@ -63,25 +63,35 @@ homesales %>%
 ggsave("graphs/homeprice-change.png", width = 8, height = 7)
 
 
+lowest_amount <- with(
+    homesales,
+    median(amount[saleyear == 2023 & hometype != "townhome"],
+        na.rm = TRUE
+    )
+)
+
+
 homesales2018 <-
     homesales %>%
-    filter(saleyear == 2018) %>%
-    mutate(saleyear = 2017.5)
+    filter(saleyear == 2023) %>%
+    mutate(saleyear = 2022.5)
 
 am_factor <- amount_thisyear / lowest_amount
 
+chc <- scales::percent(amount_thisyear / lowest_amount - 1, prefix = "+")
+
 homesales %>%
     filter(!is.na(saledate), hometype != "townhome", saleyear > 2017) %>%
-    filter(saleyear %in% c(2018, this_year)) %>%
+    filter(saleyear %in% c(2023, this_year)) %>%
     bind_rows(homesales2018) %>%
     mutate(year = factor(saleyear)) %>%
     mutate(amount = case_when(
-        year == 2018 ~ amount * am_factor,
+        year == 2023 ~ amount * am_factor,
         TRUE ~ amount
     )) %>%
     mutate(dyear = case_when(
-        year == 2017.5 ~ "2018\n(actual)",
-        year == 2018 ~ "2018\n(extrapolated)",
+        year == 2022.5 ~ "2023\n(actual)",
+        year == 2023 ~ "2023\n(extrapolated)",
         TRUE ~ paste(year, "\n(actual)")
     )) %>%
     ggplot() +
@@ -101,11 +111,11 @@ homesales %>%
     labs(
         x = "Home sale price", y = NULL,
         title = "Changes in home sale prices in Glen Lake",
-        subtitle = glue::glue("Prices in 2018 were extrapolated to {this_year} by changing {chc}") # nolint
+        subtitle = glue::glue("Prices in 2023 were extrapolated to {this_year} by changing {chc}") # nolint
     ) +
     annotate("text",
         x = lowest_amount - 5e3, y = .75,
-        label = "Median value\n2018", hjust = 1
+        label = "Median value\n2023", hjust = 1
     ) +
     annotate("text",
         x = amount_thisyear + 5e3, y = .75,
