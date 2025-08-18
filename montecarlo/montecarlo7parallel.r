@@ -9,7 +9,7 @@ plan(multisession)
 
 load("Rdata/homesales.Rdata")
 
-period_list <- c(90, 120, 180, 360, 720)
+period_list <- c(120, 180, 360, 720)
 niter_default <- 10000
 
 # estimator of time between sales and listings modeled as exponential distribution
