@@ -284,7 +284,7 @@
 742 Maya,2025-02-25,2025-06-20,350000,residential,
 508 Inner Banks,2025-05-20,2025-07-21,399200,residential,
 636 Cordelia,2025-06-11,2025-08-15,330000,residential,
-108 Dewfield,2025-05-19,2025-08-19,300000,residential,1
+108 Dewfield,2025-05-19,2025-08-19,300000,residential,
 # 455 Shoreline,2025-04-10,,,residential,
 867 Culverhouse,2025-04-24,,,residential,
 817 Culverhouse,2025-05-06,,,residential,1
@@ -295,3 +295,4 @@
 109 Dewfield,2025-07-08,,,residential,
 806 Hartscove,2025-07-26,,,residential,
 544 Shoreline,2025-08-17,,,residential,
+# 436 Shoreline,2025-09-30,,,residential,unconfirmed
