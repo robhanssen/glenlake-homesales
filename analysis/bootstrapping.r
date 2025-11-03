@@ -79,7 +79,7 @@ generate_bootstraps <- function(dat, var, custom_var) {
         # ) +
         coord_cartesian(clip = "off") +
         labs(
-            x = "Bootstrapped fuel economy distribution (in miles per gallon)",
+            x = NULL, #"Bootstrapped fuel economy distribution (in miles per gallon)",
             y = NULL,
             # title = glue::glue("Estimated fuel economy distribution by {custom_var}")
         ) +
@@ -98,4 +98,8 @@ homesales %>%
             TRUE ~ hometype
         )
     ) %>% 
-    generate_bootstraps(saleyear, hometype) 
+    generate_bootstraps(saleyear, hometype) +
+    scale_x_continuous(
+        breaks = seq(0, 700000, 50000),
+        labels = scales::dollar_format()
+    )
