@@ -71,7 +71,7 @@ inventorycalc %>%
 
 ggsave("graphs/home-inventory-fullrange.png", width = 6, height = 6)
 
-year_range <- unique(homesales$listingyear)
+year_range <- unique(c(homesales$saleyear, homesales$listingyear)) %>% .[!is.na(.)]
 year_length <- length(year_range)
 color_range <- c(rep("gray50", year_length - 1), "black")
 alpha_range <- c(rep(.11, year_length - 2), .5, .9)

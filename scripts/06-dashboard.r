@@ -19,9 +19,7 @@ max_date <- max(c(homesales$listingdate, homesales$saledate), na.rm = TRUE)
 max_year <- year(max_date)
 max_date <- format(max_date, format = "%b %d, %Y")
 
-num_years <- homesales %>%
-    distinct(listingyear) %>%
-    nrow(.)
+num_years <- unique(c(homesales$saleyear, homesales$listingyear)) %>% .[!is.na(.)] %>% length()
 
 colorscale <-
     scales::seq_gradient_pal("#D3BDA8", "#295043", "Lab")(seq(0, 1, length.out = num_years))

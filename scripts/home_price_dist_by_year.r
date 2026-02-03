@@ -34,6 +34,7 @@ price_estimator <- function(dat, saleyear, mean0 = 12.3, sd0 = .2) {
     mod <- nls(
         e ~ pnorm(t, mean0, sd0),
         start = list(mean0 = mean0_est, sd0 = sd0),
+        control = list(warnOnly = TRUE),
         data = est_tibble
     )
 
@@ -56,6 +57,7 @@ time_estimator <- function(dat, saleyear, lambda = .1) {
     mod <- nls(
         e ~ pexp(t, lambda0),
         start = list(lambda0 = lambda),
+        control = list(warnOnly = TRUE),
         data = est_tibble
     )
 
