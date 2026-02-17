@@ -35,7 +35,7 @@ homesales %>%
     aes(x = amount, y = year, fill = year, color = year) +
     geom_vline(
         xintercept = c(lowest_amount, amount_thisyear),
-        lty = 1, size = 2, alpha = .2
+        lty = 1, linewidth = 2, alpha = .2
     ) +
     ggridges::geom_density_ridges2(show.legend = FALSE, alpha = .4) +
     scale_x_continuous(
@@ -98,7 +98,7 @@ homesales %>%
     aes(x = amount, y = dyear, fill = year, color = year) +
     geom_vline(
         xintercept = c(lowest_amount, amount_thisyear),
-        lty = 1, size = 2, alpha = .2
+        lty = 1, linewidth = 2, alpha = .2
     ) +
     ggridges::geom_density_ridges2(show.legend = FALSE, alpha = .4) +
     scale_x_continuous(
