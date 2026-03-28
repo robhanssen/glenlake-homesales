@@ -1,4 +1,5 @@
 library(tidyverse)
+library(forecast)
 
 load("Rdata/homesales.Rdata")
 
@@ -40,6 +41,16 @@ sales_ts <-
         start = c(year(first(timeseries$salemonth)), month(first(timeseries$salemonth))),
         frequency = 12
     )
-data_f <- forecast::forecast(sales_ts, h = 23)
 
-plot(data_f)
+fit <- stl(sales_ts, s.window = "period")
+plot(fit)
+
+x <- ets(sales_ts)
+forecast(x, h = 12)
+
+y <- auto.arima(sales_ts)
+yy <- forecast(y, h = 12)
+plot(yy)
+
+# additional plots
+monthplot(sales_ts)
