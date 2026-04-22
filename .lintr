@@ -1,6 +1,7 @@
 linters: linters_with_defaults(
     indentation_linter(indent = 4L),
     object_usage_linter = NULL,
+    pipe_consistency_linter = pipe_consistency_linter("%>%"),
     line_length_linter(120),
     commented_code_linter = NULL)
 
