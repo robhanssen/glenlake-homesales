@@ -86,7 +86,7 @@ saleprice <-
     ggplot() +
     aes(x = saleyear, y = saleprice, fill = factor(saleyear)) +
     geom_col(alpha = alpha) +
-    geom_segment(aes(xend = saleyear, y = salemin, yend = salemax), size = 1, color = "gray50", alpha = 1) +
+    geom_segment(aes(xend = saleyear, y = salemin, yend = salemax), linewidth = 1, color = "gray50", alpha = 1) +
     geom_point(aes(y = salemin), size = 3, shape = 21, color = "white", fill = "gray50", alpha = .7) +
     geom_point(aes(y = salemax), size = 3, , shape = 21, color = "white", fill = "gray50", alpha = .7) +
     scale_y_continuous(

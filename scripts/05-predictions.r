@@ -1,7 +1,7 @@
 library(tidyverse)
 library(lubridate)
-library(scales)
-library(broom)
+# library(scales)
+# library(broom)
 theme_set(theme_light())
 source("functions/config.r")
 
@@ -30,7 +30,7 @@ homesales %>%
         )
     ) +
     geom_col() +
-    scale_y_continuous(labels = dollar_format(
+    scale_y_continuous(labels = scales::dollar_format(
         scale = 1e-3,
         prefix = "$",
         suffix = "K"
@@ -120,7 +120,7 @@ valuebyyear %>%
     ggplot() +
     aes(x = dayofyear, y = marketvalue, color = factor(saleyear), linewidth = factor(saleyear)) +
     geom_line() +
-    scale_y_continuous(labels = dollar_format(
+    scale_y_continuous(labels = scales::label_dollar(
         scale = 1e-3,
         prefix = "$",
         suffix = "K"
@@ -177,7 +177,7 @@ valuebyyear %>%
         data = modeldata %>%
             filter(dayofyear == max(dayofyear))
     ) +
-    scale_y_continuous(labels = scales::dollar_format(
+    scale_y_continuous(labels = scales::label_dollar(
         scale = 1e-3,
         prefix = "$",
         suffix = "K"

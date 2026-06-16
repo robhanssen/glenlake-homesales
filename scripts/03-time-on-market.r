@@ -38,14 +38,12 @@ homesales %>%
     filter(status == "Sold") %>%
     ggplot() +
     aes(x = factor(listingyear), y = timeonmarket) +
-    geom_violin(draw_quantiles = 0.5) +
+    geom_violin(quantiles = 0.5, quantile.linetype = "solid") +
     geom_jitter(alpha = .5, width = .2) +
-    # facet_wrap(. ~ hometype) +
     labs(
         x = "Year of listing",
         y = "Time on market (in days)",
         title = "Distribution of time on market for sold homes in Glen Lake",
-        fill = "Home type",
         caption = caption
     ) +
     scale_y_continuous(limits = c(-1, 350))

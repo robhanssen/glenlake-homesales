@@ -1,6 +1,5 @@
 library(tidyverse)
 library(patchwork)
-library(zoo)
 
 theme_set(
     theme_light() +

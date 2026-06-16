@@ -121,6 +121,7 @@ current_market_size %>%
     geom_hline(yintercept = 6, lty = 2, color = "gray50") +
     geom_smooth(
         method = "loess",
+        formula = y ~ x,
         se = FALSE,
         lty = "dashed",
         color = "gray50"

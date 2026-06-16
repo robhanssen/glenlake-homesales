@@ -1,6 +1,6 @@
 library(tidyverse)
 library(lubridate)
-library(scales)
+# library(scales)
 theme_set(theme_light())
 source("functions/config.r")
 load("Rdata/homesales.Rdata")
@@ -75,8 +75,9 @@ data_time_length <- with(
     )
 )
 
-homesales %>%
-    inner_join(hometypes) %>%
+hometurnover <-
+    homesales %>%
+    inner_join(hometypes, by = "hometype") %>%
     mutate(
         streetname = substr(address, 5, 100),
         streetname = ifelse(
@@ -90,7 +91,7 @@ homesales %>%
         countbystreet = n(),
         .groups = "drop"
     ) %>%
-    right_join(glenlakehomes) %>%
+    right_join(glenlakehomes, by = "streetname") %>%
     mutate(countbystreet = ifelse(is.na(countbystreet),
         0,
         countbystreet
@@ -107,7 +108,7 @@ homesales %>%
             "11-25 homes per street",
             "over 26 homes per street"
         )
-    )) -> hometurnover
+    )) 
 
 turnoversd <- with(hometurnover, sd(turnover))
 turnoverlimits <-
@@ -151,7 +152,7 @@ hometurnover %>%
         y = turnover,
         fill = turnoverwarning
     ) +
-    scale_y_continuous(labels = percent_format(), breaks = .25 * 1:10) +
+    scale_y_continuous(labels = scales::label_percent(), breaks = .25 * 1:10) +
     geom_col() +
     facet_wrap(~homecount, scale = "free_y") +
     ggtitle("Home turn-over by street") +
@@ -221,7 +222,7 @@ hometurnover %>%
         y = torate,
         fill = turnoverwarning
     ) +
-    scale_y_continuous(labels = percent_format(), breaks = .05 * 0:10) +
+    scale_y_continuous(labels = scales::label_percent(), breaks = .05 * 0:10) +
     geom_col() +
     facet_wrap(~homecount, scale = "free") +
     ggtitle("Annual home turn-over rate by street") +
