@@ -12,8 +12,7 @@ homesales_adjusted <- homesales %>% filter(!is.na(amount))
 
 p1 <-
     map_df(period_list, ~ predict_market_size(homesales_adjusted, .x)) %>%
-    ggplot() +
-    aes(factor(period), amount_sold) +
+    ggplot(aes(factor(period), amount_sold)) +
     geom_col(alpha = .8) +
     scale_y_continuous(
         labels = scales::dollar_format(),
@@ -35,8 +34,7 @@ ggsave("predictions/horizon-market-value.png", plot = p1, width = 8, height = 6)
 p2 <-
     map_df(period_list, ~ predict_listing_rate(homesales, .x)) %>%
     mutate(amount_listed = ifelse(amount_listed > 200, NA_real_, amount_listed)) %>%
-    ggplot() +
-    aes(factor(period), amount_listed) +
+    ggplot(aes(factor(period), amount_listed)) +
     geom_col(alpha = .8) +
     scale_y_continuous(
         labels = scales::comma_format(),
@@ -57,8 +55,7 @@ ggsave("predictions/horizon-listings-rate.png", plot = p2, width = 8, height = 6
 
 p3 <-
     map_df(period_list, ~ predict_sale_rate(homesales, .x)) %>%
-    ggplot() +
-    aes(factor(period), amount_listed) +
+    ggplot(aes(factor(period), amount_listed)) +
     geom_col(alpha = .8) +
     scale_y_continuous(
         labels = scales::comma_format(),

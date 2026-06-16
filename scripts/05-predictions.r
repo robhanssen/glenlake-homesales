@@ -7,8 +7,8 @@ source("functions/config.r")
 
 load("Rdata/homesales.Rdata")
 
-glenlakehomes <- read_csv("sources/glenlakehomes.csv")
-hometypes <- read_csv("sources/hometypes.csv")
+glenlakehomes <- read_csv("sources/glenlakehomes.csv", show_col_types = FALSE)
+hometypes <- read_csv("sources/hometypes.csv", show_col_types = FALSE)
 
 totalhomes <- with(glenlakehomes, sum(numberofhomes))
 totalsold <- nrow(homesales)
@@ -60,6 +60,7 @@ last_sale_day <-
     mutate(dayofyear = yday(saledate)) %>%
     group_by(saleyear) %>%
     slice_max(dayofyear, n = 1) %>%
+    ungroup() %>%
     select(address:amount, dayofyear) %>%
     pull(dayofyear) %>%
     median(., na.rm = TRUE)
@@ -163,15 +164,14 @@ subtitle <- paste0(
 valuebyyear %>%
     filter(marketvalue == max(marketvalue)) %>%
     mutate(predicted = ifelse(saleyear != this_year, TRUE, FALSE)) %>%
-    ggplot() +
-    aes(x = saleyear, y = marketvalue, fill = predicted) +
-    geom_col() +
+    ggplot(aes(x = saleyear, y = marketvalue)) +
+    geom_col(aes(fill = predicted)) +
     geom_errorbar(
         aes(
             y = .fitted,
             ymin = .lower,
-            ymax = .upper,
-            fill = TRUE
+            ymax = .upper
+            # fill = NA
         ),
         width = .2,
         data = modeldata %>%
@@ -252,8 +252,7 @@ salesmodeldata <-
 
 
 salecounter %>%
-    ggplot() +
-    aes(x = dayofyear, y = salecount, color = factor(year), linewidth = factor(year)) +
+    ggplot(aes(x = dayofyear, y = salecount, color = factor(year), linewidth = factor(year))) +
     geom_line() +
     geom_line(data = salesmodeldata, aes(y = .fitted), lty = 2) +
     scale_y_continuous(limit = c(0, NA)) +
@@ -296,15 +295,13 @@ salecounter %>%
     filter(salecount == max(salecount)) %>%
     mutate(predicted = ifelse(year != this_year, TRUE, FALSE)) %>%
     ungroup() %>%
-    ggplot() +
-    aes(x = year, y = salecount, fill = predicted) +
-    geom_col() +
+    ggplot(aes(x = year, y = salecount)) +
+    geom_col(aes(fill = predicted)) +
     geom_errorbar(
         aes(
             y = .fitted,
             ymin = .lower,
-            ymax = .upper,
-            fill = NULL
+            ymax = .upper
         ),
         width = .2,
         data = salesmodeldata %>% filter(dayofyear == max(dayofyear))

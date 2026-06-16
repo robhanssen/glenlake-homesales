@@ -71,7 +71,7 @@ ggsave("graphs/salesprice-median.png", width = 8, height = 6)
 homesales %>%
     filter(status == "Sold") %>%
     ggplot(aes(x = factor(saleyear), y = amount, fill = hometype)) +
-    geom_violin(draw_quantiles = .5) +
+    geom_violin(quantiles = 0.5, quantile.linetype = "solid") +
     facet_wrap(. ~ hometype) +
     geom_jitter(width = .1, alpha = .2) +
     scale_x_discrete(breaks = x_breaks) +

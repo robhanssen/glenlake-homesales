@@ -6,7 +6,8 @@ source("functions/config.r")
 homesales <-
     read_csv(homesale_file,
         comment = "#",
-        col_types = "cDDdci"
+        col_types = "cDDdci", 
+        show_col_types = FALSE
     ) %>%
     mutate(
         listingyear = year(listingdate),

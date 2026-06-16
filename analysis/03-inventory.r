@@ -36,7 +36,7 @@ all_dates <- tibble(
 
 inventory_means <-
     inventorycalc %>%
-    right_join(all_dates, by = "date") %>%
+    right_join(all_dates) %>%
     arrange(date) %>%
     fill(inventory) %>%
     mutate(display_date = normal_date(date)) %>%
@@ -53,7 +53,6 @@ inventory_means <-
         ~ zoo::rollmean(.x, 7, na.pad = TRUE, align = "center")
     )) %>%
     drop_na()
-
 
 
 inventorycalc %>%
@@ -116,17 +115,10 @@ ggsave("graphs/home-inventory.png", width = 8, height = 8)
 #
 #
 
-pdf_norm <- function(x, mu, sig) {
-    .5 * (1 + pracma::erf((x - mu) / (sqrt(2) * sig)))
-}
-
-pdf_lognorm <- function(x, mu, sig) {
-    .5 * (1 + pracma::erf((log(x) - mu) / (sqrt(2) * sig)))
-}
 
 invsoft <-
     inventorycalc %>%
-    right_join(all_dates, by = "date") %>%
+    right_join(all_dates) %>%
     arrange(date) %>%
     fill(inventory) %>%
     filter(year(date) > 2017)
@@ -140,20 +132,52 @@ sd_inv <- sd((invsoft$inventory))
 logmean_inv <- mean(log(invsoft$inventory))
 logsd_inv <- sd(log(invsoft$inventory))
 
+invlog <- log(invsoft$inventory)
+inv_cdf_e <- ecdf(invlog)
+
+simul_cdf_log <-
+    tibble(
+        inv = log(seq(1, maxventory, 1)),
+        cdf_simul = inv_cdf_e(inv)
+    )
+
+
+logmod <- nls(
+    cdf_simul ~ pnorm(inv, logmean_inv, logsd_inv),
+    data = simul_cdf_log,
+    start = list(logmean_inv = 1, logsd_inv = 1)
+)
+
+
+lmn <- coefficients(logmod)[1]
+lsd <- coefficients(logmod)[2]
+
+x <- c(seq(0.1, 1, .1), seq(1, 40, .1))
+y <- dnorm(log(x), lmn, lsd)
+y1 <- pnorm(log(x), lmn, lsd)
+
 
 inv_cdf <-
     tibble(
-        inv = seq(minventory, maxventory, 1),
+        inv = seq(.1, maxventory, 1),
+        loginv = log(inv),
         cdf = map_dbl(inv, ~ nrow(invsoft %>% filter(inventory <= .x)) / nrow(invsoft)), # nolint
-        cdf_simul_log = map_dbl(inv, ~ pdf_lognorm(.x, logmean_inv, logsd_inv)), # nolint
-        cdf_simul_norm = map_dbl(inv, ~ pdf_norm(.x, mean_inv, sd_inv)) # nolint
+        # cdf_simul_log = map_dbl(loginv, \(d) predict(logmod, newdata = tibble(inv = d))) # nolint
+        cdf_simul_log = predict(logmod, newdata = tibble(inv = loginv)) # nolint
+        # cdf_simul_norm = map_dbl(inv, ~ pdf_norm(.x, mean_inv, sd_inv)) # nolint
     )
+
+
+ggplot(tibble(x, y, y1), aes(x, y)) +
+    geom_line() +
+    geom_line(aes(y = y1), color = "red")
+
 
 mid_point <-
     tibble(y = pnorm(-2:2)) %>%
     mutate(x = map(
         y,
-        ~ approx(inv_cdf$cdf, inv_cdf$inv, .x)$y
+        ~ approx(inv_cdf$cdf_simul_log, inv_cdf$inv, .x)$y
     )) %>%
     unnest(x)
 
@@ -165,10 +189,16 @@ last_point <-
     )) %>%
     unnest(x)
 
+
+inv_cdf %>%
+    ggplot(aes(x = cdf, y = cdf_simul_log)) +
+    geom_point() +
+    geom_abline(slope = 1, intercept = 0, linetype = 2, color = "gray70")
+
 inv_cdf_graph <-
     inv_cdf %>%
     ggplot(aes(inv, cdf)) +
-    geom_point(alpha = .2, size = 2) +
+    # geom_point(alpha = .2, size = 2) +
     geom_line(aes(y = cdf_simul_log),
         linewidth = 2, alpha = .3,
         color = "gray70"
@@ -191,9 +221,9 @@ inv_cdf_graph <-
     ) +
     geom_point(
         data = last_point,
-        aes(y, x), 
+        aes(y, x),
         color = "red",
-        inherit.aes = FALSE, 
+        inherit.aes = FALSE,
         size = 2
     ) +
     # geom_hline(

@@ -8,7 +8,7 @@ load("Rdata/homesales.Rdata")
 
 
 phases <-
-    read_csv("sources/glenlakehomes-phases.csv") %>%
+    read_csv("sources/glenlakehomes-phases.csv", show_col_types = FALSE) %>%
     mutate(location = case_when(
         phase %in% c(2) ~ "back",
         TRUE ~ "front"
@@ -82,16 +82,15 @@ colors <- c("front" = "red", "back" = "darkgreen", "total" = "gray50")
 linesty <- c(2, 2, 1)
 
 cleaned_up_final %>%
-    ggplot() +
-    aes(date, homesold, color = factor(phase), lty = factor(phase)) +
+    ggplot(aes(date, homesold, color = factor(phase), lty = factor(phase))) +
     geom_line() +
     scale_color_manual(values = colors) +
     scale_linetype_manual(values = linesty) +
     labs(
         x = "Date",
         y = "Homes sold in the last 12 months",
-        color = "Phase",
-        linestyle = NA
+        color = "Phase"
+        # linestyle = NA
     ) +
     theme(legend.position = "none") +
     annotate("text", x = ymd(20210101), y = 18, label = "Back", color = "darkgreen") +
@@ -117,8 +116,8 @@ cleaned_up_final %>%
     labs(
         x = "Date",
         y = "Homes sold in the last 12 months",
-        color = "Phase",
-        linestyle = NA
+        color = "Phase"
+        # linestyle = NA
     ) +
     theme(legend.position = "none") +
     annotate("text", x = ymd(20220501), y = 0.05, label = "Back", color = "darkgreen") +

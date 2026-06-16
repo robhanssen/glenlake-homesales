@@ -56,7 +56,8 @@ listed_last_year_by_month %>%
     geom_line() +
     geom_line(
         data = sold_last_year_by_month %>% filter(date >= first(datelist) + years(1)),
-        aes(y = homesold), color = "red") +
+        aes(y = homesold), color = "red"
+    ) +
     scale_x_date() +
     scale_y_continuous(limits = c(0, NA), breaks = 10 * 0:100) +
     labs(
@@ -67,7 +68,8 @@ listed_last_year_by_month %>%
     )
 
 ggsave("graphs/average-homesales-per-12-months.png",
-    width = 6, height = 6)
+    width = 6, height = 6
+)
 
 
 current_market_size <-
@@ -87,8 +89,7 @@ note_date <- last(datelist) - days(180)
 sold_last_year_by_month %>%
     mutate(residencetime = 484 / homesold) %>%
     filter(date >= first(datelist) + years(1)) %>%
-    ggplot() +
-    aes(date, residencetime) +
+    ggplot(aes(date, residencetime)) +
     geom_line() +
     scale_x_date() +
     scale_y_continuous(limits = c(0, NA), breaks = 10 * 0:100) +
@@ -113,8 +114,7 @@ current_market_size %>%
     inner_join(sold_last_year_by_month, by = c("month" = "date")) %>%
     mutate(market_speed = homesonmarket / homesold * 12) %>%
     filter(month >= first(datelist) + years(1)) %>%
-    ggplot() +
-    aes(month, market_speed) +
+    ggplot(aes(month, market_speed)) +
     geom_line(color = "gray50", alpha = .5) +
     scale_x_date() +
     scale_y_continuous(limits = c(0, NA), breaks = 1 * 0:100) +

@@ -7,9 +7,12 @@ load("Rdata/homesales.Rdata")
 # median time on market by year and hometype
 timeonmarket <- homesales %>%
     group_by(listingyear, hometype, status) %>%
-    summarise(mediantimeonmarket = median(timeonmarket,
-        na.rm = TRUE
-    ))
+    summarise(
+        mediantimeonmarket = median(timeonmarket,
+            na.rm = TRUE
+        ),
+        .groups = "drop"
+    )
 
 timeonmarket %>%
     ggplot() +

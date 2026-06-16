@@ -5,8 +5,8 @@ theme_set(theme_light())
 source("functions/config.r")
 load("Rdata/homesales.Rdata")
 
-glenlakehomes <- read_csv("sources/glenlakehomes.csv")
-hometypes <- read_csv("sources/hometypes.csv")
+glenlakehomes <- read_csv("sources/glenlakehomes.csv", show_col_types = FALSE)
+hometypes <- read_csv("sources/hometypes.csv", show_col_types = FALSE)
 
 totalhomes <- with(glenlakehomes, sum(numberofhomes))
 totalsold <- nrow(homesales)
@@ -25,12 +25,11 @@ resales <-
     mutate(address_year = glue::glue("{address} ({listingyear})"))
 
 resales %>%
-    ggplot() +
-    aes(
+    ggplot(aes(
         y = fct_reorder(address_year, -lagtime),
         x = lagtime,
         fill = hometype
-    ) +
+    )) +
     geom_col() +
     labs(
         x = "Time between sale and next listing (in months)",
