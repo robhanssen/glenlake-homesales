@@ -22,11 +22,13 @@ amount_thisyear <- with(
 )
 
 # 5-color set from ColorBrewers
-# this will eventually fail when there are more than 12 years in the dataset (~2029 or so)
-colors <- RColorBrewer::brewer.pal(12, "Paired")
+# this will eventually fail when there are more than 120 year in the dataset (i.e. never)
+# should this happen, increase the "10" to a larger number
+colors <- rep(RColorBrewer::brewer.pal(12, "Paired"), 10)
 
-chc <- scales::percent(amount_thisyear / lowest_amount - 1, prefix = "+")
-
+am_factor <- amount_thisyear / lowest_amount
+prefix <- ifelse(am_factor > 1, "+","")
+chc <- scales::percent(am_factor - 1, prefix = prefix)
 
 homesales %>%
     filter(!is.na(saledate), hometype != "townhome", saleyear > 2017) %>%
@@ -63,35 +65,37 @@ homesales %>%
 ggsave("graphs/homeprice-change.png", width = 8, height = 7)
 
 
+tax_years <- seq(1998, 2200, 5)
+last_tax_year <- max(tax_years[which(year(today()) > tax_years)])
+
 lowest_amount <- with(
     homesales,
-    median(amount[saleyear == 2023 & hometype != "townhome"],
+    median(amount[saleyear == last_tax_year & hometype != "townhome"],
         na.rm = TRUE
     )
 )
 
-
 homesales2018 <-
     homesales %>%
-    filter(saleyear == 2023) %>%
-    mutate(saleyear = 2022.5)
+    filter(saleyear == last_tax_year) %>%
+    mutate(saleyear = last_tax_year - 0.5)
 
 am_factor <- amount_thisyear / lowest_amount
-
-chc <- scales::percent(amount_thisyear / lowest_amount - 1, prefix = "+")
+prefix <- ifelse(am_factor > 1, "+","")
+chc <- scales::percent(am_factor - 1, prefix = prefix)
 
 homesales %>%
     filter(!is.na(saledate), hometype != "townhome", saleyear > 2017) %>%
-    filter(saleyear %in% c(2023, this_year)) %>%
+    filter(saleyear %in% c(last_tax_year, this_year)) %>%
     bind_rows(homesales2018) %>%
     mutate(year = factor(saleyear)) %>%
     mutate(amount = case_when(
-        year == 2023 ~ amount * am_factor,
+        year == last_tax_year ~ amount * am_factor,
         TRUE ~ amount
     )) %>%
     mutate(dyear = case_when(
-        year == 2022.5 ~ "2023\n(actual)",
-        year == 2023 ~ "2023\n(extrapolated)",
+        year == last_tax_year - 0.5 ~ "2023\n(actual)",
+        year == last_tax_year ~ "2023\n(extrapolated)",
         TRUE ~ paste(year, "\n(actual)")
     )) %>%
     ggplot() +
@@ -111,14 +115,14 @@ homesales %>%
     labs(
         x = "Home sale price", y = NULL,
         title = "Changes in home sale prices in Glen Lake",
-        subtitle = glue::glue("Prices in 2023 were extrapolated to {this_year} by changing {chc}") # nolint
+        subtitle = glue::glue("Prices in {last_tax_year} were extrapolated to {this_year} by changing {chc}") # nolint
     ) +
     annotate("text",
         x = lowest_amount - 5e3, y = .75,
-        label = "Median value\n2023", hjust = 1
+        label = glue::glue("Median value\n{last_tax_year}"), hjust = 1
     ) +
     annotate("text",
-        x = amount_thisyear + 5e3, y = .75,
+        x = amount_thisyear + 5e3, y = 1.25,
         label = glue::glue("Median value\n{this_year} ({chc})"), hjust = 0
     ) +
     scale_fill_manual(values = colors) +
