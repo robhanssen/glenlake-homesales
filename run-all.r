@@ -1,9 +1,11 @@
+future::plan(future::multisession)
+
 # import all data first
 source("02-import-data.r")
 
-safe_source <- safely(source, quiet = FALSE)
+safe_source <- purrr::safely(source, quiet = FALSE)
 
 scripts <-
     list.files(path = "scripts", pattern = "\\.r$", full.names = TRUE)
 
-purrr::walk(scripts, safe_source)
+furrr::future_walk(scripts, safe_source, .options = furrr::furrr_options(seed = TRUE))
