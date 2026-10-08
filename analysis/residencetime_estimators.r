@@ -31,7 +31,7 @@ years_observed <- first_year:last_year
 n_years <- length(years_observed)
 
 # Number of simulation/bootstrap replicates
-B <- 100000L
+n_simul <- 100000L
 
 
 # ------------------------------------------------------------
@@ -45,19 +45,19 @@ sales_raw <- read_csv(
     show_col_types = FALSE
 )
 
-sales <- sales_raw |>
+sales <- sales_raw %>%
     mutate(
         address = trimws(address),
         listingdate = as.Date(listingdate),
         saledate = as.Date(saledate),
         amount = as.numeric(amount),
         hometype = trimws(hometype)
-    ) |>
+    ) %>%
     filter(
         !is.na(saledate),
         lubridate::year(saledate) >= first_year,
         lubridate::year(saledate) <= last_year
-    ) |>
+    ) %>%
     mutate(
         sale_year = lubridate::year(saledate)
     )
@@ -112,23 +112,23 @@ all_addresses <- c(
 )
 
 # Count sales for every home-year combination.
-home_year_data <- sales |>
-    count(address, sale_year, name = "sales_count") |>
+home_year_data <- sales %>%
+    count(address, sale_year, name = "sales_count") %>%
     complete(
         address = all_addresses,
         sale_year = years_observed,
         fill = list(sales_count = 0L)
-    ) |>
+    ) %>%
     arrange(address, sale_year)
 
 # Convert to a 482 x 9 matrix.
-sales_matrix <- home_year_data |>
+sales_matrix <- home_year_data %>%
     pivot_wider(
         names_from = sale_year,
         values_from = sales_count,
         values_fill = 0
-    ) |>
-    column_to_rownames("address") |>
+    ) %>%
+    column_to_rownames("address") %>%
     as.matrix()
 
 storage.mode(sales_matrix) <- "integer"
@@ -182,7 +182,7 @@ summarize_simulation <- function(x, method) {
 lambda_hat <- n_sales / exposure_home_years
 
 simulated_sale_counts_poisson <- rpois(
-    n = B,
+    n = n_simul,
     lambda = lambda_hat * exposure_home_years
 )
 
@@ -204,7 +204,7 @@ summary_poisson
 sales_per_home <- rowSums(sales_matrix)
 
 residence_home_bootstrap <- replicate(
-    B,
+    n_simul,
     {
         sampled_home_indices <- sample.int(
             n = n_homes,
@@ -238,7 +238,7 @@ bootstrap_home_once <- function(x) {
 }
 
 residence_home_bootstrap <- replicate(
-    B,
+    n_simul,
     bootstrap_home_once(sales_per_home)
 )
 
@@ -252,7 +252,7 @@ sales_per_year <- colSums(sales_matrix)
 print(sales_per_year)
 
 residence_year_bootstrap <- replicate(
-    B,
+    n_simul,
     {
         sampled_year_indices <- sample.int(
             n = n_years,
@@ -326,13 +326,13 @@ moving_block_year_bootstrap <- function(
 residence_moving_block_2 <- moving_block_year_bootstrap(
     annual_counts = sales_per_year,
     block_length = 2L,
-    n_bootstrap = B
+    n_bootstrap = n_simul
 )
 
 residence_moving_block_3 <- moving_block_year_bootstrap(
     annual_counts = sales_per_year,
     block_length = 3L,
-    n_bootstrap = B
+    n_bootstrap = n_simul
 )
 
 summary_moving_block_2 <- summarize_simulation(
@@ -371,7 +371,7 @@ two_way_bootstrap_once <- function(x) {
 }
 
 residence_two_way <- replicate(
-    B,
+    n_simul,
     two_way_bootstrap_once(sales_matrix)
 )
 
@@ -390,7 +390,7 @@ posterior_shape <- n_sales + 0.5
 posterior_rate <- exposure_home_years
 
 posterior_lambda <- rgamma(
-    n = B,
+    n = n_simul,
     shape = posterior_shape,
     rate = posterior_rate
 )
@@ -416,7 +416,7 @@ simulation_summary <- bind_rows(
     summary_moving_block_3,
     summary_two_way,
     summary_bayesian
-) |>
+) %>%
     mutate(
         across(
             c(
@@ -457,7 +457,7 @@ plot_data <- bind_rows(
         residence_time = posterior_residence_time,
         method = "Bayesian Poisson"
     )
-) |>
+) %>%
     filter(
         is.finite(residence_time),
         residence_time <= quantile(residence_time, 0.995)
@@ -506,7 +506,7 @@ uncertainty_g <-
 # 14. Confidence/credible interval comparison
 # ------------------------------------------------------------
 
-interval_plot_data <- simulation_summary |>
+interval_plot_data <- simulation_summary %>%
     mutate(
         method = reorder(method, median)
     )
@@ -559,7 +559,7 @@ ggsave(
 )
 
 
-simulation_summary |>
+simulation_summary %>%
     filter(
         method %in% c(
             "Parametric Poisson Monte Carlo",
