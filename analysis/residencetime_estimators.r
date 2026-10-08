@@ -568,3 +568,276 @@ simulation_summary %>%
             "Bayesian Poisson, Jeffreys prior"
         )
     )
+
+
+ggplot(
+  tibble(residence_time = residence_two_way),
+  aes(x = residence_time)
+) +
+  geom_histogram(
+    binwidth = 0.5,
+    boundary = 0,
+    fill = "#2F75B5",
+    color = "white"
+  ) +
+  geom_vline(
+    xintercept = estimated_residence_time,
+    linewidth = 0.8,
+    linetype = "dashed",
+    color = "#C00000"
+  ) +
+  labs(
+    title = "Bootstrap Distribution of Estimated Average Ownership Tenure",
+    subtitle = "Two-way bootstrap by home and calendar year",
+    x = "Estimated neighborhood average, years",
+    y = "Number of bootstrap simulations"
+  ) +
+  theme_minimal(base_size = 12)
+
+set.seed(20261008)
+
+n_simulated_spells <- 100000L
+mean_tenure <- estimated_residence_time
+
+simulated_individual_tenure <- rexp(
+  n = n_simulated_spells,
+  rate = 1 / mean_tenure
+)
+
+ggplot(
+  tibble(tenure = simulated_individual_tenure),
+  aes(x = tenure)
+) +
+  geom_histogram(
+    binwidth = 2,
+    boundary = 0,
+    fill = "#70AD47",
+    color = "white"
+  ) +
+  geom_vline(
+    xintercept = mean_tenure,
+    color = "#C00000",
+    linetype = "dashed",
+    linewidth = 0.8
+  ) +
+  coord_cartesian(xlim = c(0, 60)) +
+  labs(
+    title = "Illustrative Model of Individual Ownership Durations",
+    subtitle = "Exponential model with mean tenure of 14.9 years",
+    x = "Individual ownership duration, years",
+    y = "Number of simulated ownership spells",
+    caption = paste(
+      "Modeled distribution, not observed resident-tenure data.",
+      "Durations above 60 years are not displayed."
+    )
+  ) +
+  theme_minimal(base_size = 12)
+
+
+  tenure_breaks <- c(0, 5, 10, 15, 20, 30, 40, Inf)
+
+tenure_distribution <- tibble(
+  tenure = simulated_individual_tenure
+) |>
+  mutate(
+    tenure_group = cut(
+      tenure,
+      breaks = tenure_breaks,
+      right = FALSE,
+      labels = c(
+        "0-4.9 years",
+        "5-9.9 years",
+        "10-14.9 years",
+        "15-19.9 years",
+        "20-29.9 years",
+        "30-39.9 years",
+        "40+ years"
+      )
+    )
+  ) |>
+  count(tenure_group) |>
+  mutate(
+    proportion = n / sum(n)
+  )
+
+ggplot(
+  tenure_distribution,
+  aes(x = tenure_group, y = proportion)
+) +
+  geom_col(fill = "#2F75B5") +
+  scale_y_continuous(
+    labels = scales::percent_format(accuracy = 1)
+  ) +
+  labs(
+    title = "Illustrative Distribution of Ownership Durations",
+    subtitle = "Exponential model calibrated to a 14.9-year mean",
+    x = "Ownership duration",
+    y = "Modeled percentage of ownership spells",
+    caption = "Model-based illustration; not a histogram of observed residents."
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    axis.text.x = element_text(
+      angle = 35,
+      hjust = 1
+    )
+  )
+
+lower <- c(0, 5, 10, 15, 20, 30, 40)
+upper <- c(5, 10, 15, 20, 30, 40, Inf)
+
+exponential_bins <- tibble(
+  lower = lower,
+  upper = upper,
+  tenure_group = c(
+    "0-4.9 years",
+    "5-9.9 years",
+    "10-14.9 years",
+    "15-19.9 years",
+    "20-29.9 years",
+    "30-39.9 years",
+    "40+ years"
+  ),
+  probability =
+    pexp(upper, rate = 1 / mean_tenure) -
+    pexp(lower, rate = 1 / mean_tenure)
+)
+
+exponential_bins
+
+# library(dplyr)
+# library(purrr)
+# library(ggplot2)
+
+set.seed(20261008)
+
+mean_tenure <- estimated_residence_time
+n_per_model <- 100000L
+
+weibull_shapes <- c(
+  "Decreasing sale rate" = 0.75,
+  "Constant sale rate" = 1.00,
+  "Increasing sale rate" = 1.50,
+  "More concentrated tenure" = 2.00
+)
+
+weibull_simulations <- imap_dfr(
+  weibull_shapes,
+  function(shape, model_name) {
+
+    # For Weibull(shape, scale):
+    # mean = scale * Gamma(1 + 1 / shape)
+    scale <- mean_tenure / gamma(1 + 1 / shape)
+
+    tibble(
+      tenure = rweibull(
+        n = n_per_model,
+        shape = shape,
+        scale = scale
+      ),
+      model = model_name,
+      shape = shape
+    )
+  }
+)
+
+ggplot(
+  weibull_simulations,
+  aes(x = tenure, fill = model)
+) +
+  geom_histogram(
+    binwidth = 2,
+    boundary = 0,
+    position = "identity",
+    alpha = 0.25
+  ) +
+  coord_cartesian(xlim = c(0, 60)) +
+  facet_wrap(~ model, ncol = 2) +
+  labs(
+    title = "Alternative Modeled Ownership-Tenure Distributions",
+    subtitle = "Every model has the same 14.9-year mean",
+    x = "Ownership duration, years",
+    y = "Simulated ownership spells",
+    caption = "Illustrative assumptions, not observed resident-tenure distributions."
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "none")
+
+
+  set.seed(20261008)
+
+n_predictive <- 100000L
+
+# Draw rates from the Bayesian posterior calculated earlier.
+predictive_lambda <- sample(
+  posterior_lambda,
+  size = n_predictive,
+  replace = TRUE
+)
+
+# Draw one individual duration for each sampled rate.
+posterior_predictive_tenure <- rexp(
+  n = n_predictive,
+  rate = predictive_lambda
+)
+
+ggplot(
+  tibble(tenure = posterior_predictive_tenure),
+  aes(x = tenure)
+) +
+  geom_histogram(
+    binwidth = 2,
+    boundary = 0,
+    fill = "#8064A2",
+    color = "white"
+  ) +
+  coord_cartesian(xlim = c(0, 60)) +
+  labs(
+    title = "Posterior Predictive Ownership-Duration Distribution",
+    subtitle = paste(
+      "Exponential tenure model with uncertainty",
+      "in the estimated turnover rate"
+    ),
+    x = "Modeled ownership duration, years",
+    y = "Number of simulated ownership spells",
+    caption = paste(
+      "Model-based prediction under a constant-hazard assumption;",
+      "not observed household tenure."
+    )
+  ) +
+  theme_minimal(base_size = 12)
+
+
+
+  observed_repeat_intervals <- sales |>
+  arrange(address, saledate) |>
+  group_by(address) |>
+  mutate(
+    previous_sale = lag(saledate),
+    interval_years =
+      as.numeric(saledate - previous_sale) / 365.2425
+  ) |>
+  ungroup() |>
+  filter(!is.na(interval_years))
+
+ggplot(
+  observed_repeat_intervals,
+  aes(x = interval_years)
+) +
+  geom_histogram(
+    binwidth = 0.5,
+    boundary = 0,
+    fill = "#ED7D31",
+    color = "white"
+  ) +
+  labs(
+    title = "Observed Intervals Between Repeat Sales",
+    subtitle = "Strongly biased toward short ownership intervals",
+    x = "Years between recorded sales",
+    y = "Observed intervals",
+    caption = paste(
+      "Includes only homes with at least two sales within",
+      "the observation window; not representative of all homes."
+    )
+  ) +
+  theme_minimal(base_size = 12)
