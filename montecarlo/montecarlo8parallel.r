@@ -266,7 +266,7 @@ ggsave(
     height = 10
 )
 
-ggsave("montecarlo/mc-par7.png",
+ggsave("montecarlo/mc-par8.png",
     plot = num_g + dist_g,
     width = 10, height = 6
 )
